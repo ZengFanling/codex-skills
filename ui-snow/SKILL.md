@@ -44,16 +44,19 @@ description: "华润雪花 UI/UE 设计专家 skill。Use when the user mentions
 
 优先读取这些本地参考：
 
+- [雪花移动端规范解读.md](/Users/fallin/.codex/skills/ui-snow/references/雪花移动端规范解读.md)
 - [Snow-Design-Mobile-v2.1.1.figma.url](/Users/fallin/.codex/skills/ui-snow/references/Snow-Design-Mobile-v2.1.1.figma.url)
 
 其中：
 
+- `雪花移动端规范解读.md` 是已经从 Figma 规范中抽取出来的本地结构化解读，适合作为日常设计、审计、D2C、C2D 的第一层规范摘要
 - `Snow-Design-Mobile-v2.1.1.figma.url` 是华润雪花移动端设计规范 Figma 文件，文件名为 `Snow Design-Mobile · v2.1.1`，fileKey 为 `1A2vInRpEAHGreqliNe34q`
 
 执行时遵循：
 
 - 先判断当前任务是移动端、PC 端，还是双端联动
-- 如果是移动端 UI/UE 任务，优先读取 `Snow Design-Mobile · v2.1.1` Figma 文件，提取适用的页面结构、组件、变量、样式、状态和交互规范
+- 如果是移动端 UI/UE 任务，先读取本地 `雪花移动端规范解读.md`，快速获得颜色、字体、按钮、导航、输入、选择、反馈等已沉淀规则
+- 如果当前任务需要更细的页面、组件、节点、状态、尺寸或还没有被本地摘要覆盖，再继续读取 `Snow Design-Mobile · v2.1.1` Figma 文件
 - 再从公司移动端规范里寻找适用约束：布局、导航、表单、字体、颜色、交互、组件行为、页面密度
 - 如果当前环境拿不到规范全文，就明确说明“已发现规范入口，但无法直接读取正文”，并让用户补充导出内容、截图或片段
 - 在没有反例授权时，不要用个人审美覆盖公司规范
@@ -64,12 +67,33 @@ description: "华润雪花 UI/UE 设计专家 skill。Use when the user mentions
 
 读取方式：
 
-1. 从 `references/Snow-Design-Mobile-v2.1.1.figma.url` 读取 Figma 链接。
-2. 提取 fileKey：`1A2vInRpEAHGreqliNe34q`。
-3. 使用 Figma metadata / design context / screenshot / variable / design system search 等能力读取相关页面、Frame、组件、变量和样式。
-4. 先读取文件结构，判断目标组件所在页面；不要只看封面就得出规范结论。
-5. 若用户指定组件或页面，例如按钮、搜索栏、底部弹层、列表、Tab、表单、导航、地图标记等，优先读取对应节点或搜索相关组件。
-6. 如果暂时只能读取到封面或无法定位组件，需要如实说明，并继续请用户提供具体页面名、Frame 名、组件名或节点链接。
+1. 先读取 `references/雪花移动端规范解读.md`，看当前任务是否已经被本地规范摘要覆盖。
+2. 如果摘要不足，再从 `references/Snow-Design-Mobile-v2.1.1.figma.url` 读取 Figma 链接。
+3. 提取 fileKey：`1A2vInRpEAHGreqliNe34q`。
+4. 使用 Figma metadata / design context / screenshot / variable / design system search 等能力读取相关页面、Frame、组件、变量和样式。
+5. 先读取文件结构，判断目标组件所在页面；不要只看封面就得出规范结论。
+6. 若用户指定组件或页面，例如按钮、搜索栏、底部弹层、列表、Tab、表单、导航、地图标记等，优先读取对应节点或搜索相关组件。
+7. 如果暂时只能读取到封面或无法定位组件，需要如实说明，并继续请用户提供具体页面名、Frame 名、组件名或节点链接。
+
+已沉淀进本地摘要的高频模块包括：
+
+- 全局视觉基调
+- 品牌色 / 中性色 / 功能色 / 文字色
+- 字体层级的初步判断
+- 按钮体系
+- 导航栏体系
+- 搜索框
+- 输入框
+- 选择器
+- 对话框
+- 轻提示
+- 单选框 / 复选框 / 开关
+- 日期选择器
+- 动作面板
+- 消息通知
+- 弹出层
+- 进度条
+- 环形进度条（结构层级）
 
 移动端规范输出时至少沉淀：
 
