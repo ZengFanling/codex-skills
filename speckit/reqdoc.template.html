@@ -37,6 +37,7 @@
       }
 
       .hero,
+      .focus-board,
       section {
         background: var(--surface);
         border: 1px solid var(--line);
@@ -46,6 +47,13 @@
       .hero {
         padding: 28px 32px;
         margin-bottom: 20px;
+      }
+
+      .focus-board {
+        padding: 20px 24px;
+        margin-bottom: 20px;
+        border-color: #bfdbfe;
+        background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
       }
 
       .hero h1 {
@@ -154,6 +162,81 @@
         color: var(--muted);
       }
 
+      .focus-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .focus-item {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 14px;
+        background: #fff;
+      }
+
+      .focus-item h3 {
+        margin-top: 0;
+        margin-bottom: 8px;
+      }
+
+      .callout {
+        margin-top: 12px;
+        padding: 14px 16px;
+        border-radius: 10px;
+        border: 1px solid transparent;
+      }
+
+      .callout h4 {
+        margin: 0 0 8px;
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      .callout ul {
+        margin: 0;
+      }
+
+      .callout-dev {
+        border-color: #bfdbfe;
+        background: #eff6ff;
+      }
+
+      .callout-warn {
+        border-color: #fed7aa;
+        background: #fff7ed;
+      }
+
+      .callout-risk {
+        border-color: #fecaca;
+        background: #fef2f2;
+      }
+
+      .pill {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        line-height: 20px;
+        font-weight: 600;
+      }
+
+      .pill-high {
+        color: #b42318;
+        background: #fee4e2;
+      }
+
+      .pill-medium {
+        color: #b54708;
+        background: #ffedd5;
+      }
+
+      .pill-low {
+        color: #175cd3;
+        background: #dbeafe;
+      }
+
       .ui-block {
         margin-top: 12px;
         padding: 14px 16px;
@@ -176,7 +259,8 @@
 
       @media (max-width: 900px) {
         .meta,
-        .grid-2 {
+        .grid-2,
+        .focus-grid {
           grid-template-columns: 1fr;
         }
       }
@@ -206,6 +290,47 @@
           </div>
         </div>
       </header>
+
+      <aside class="focus-board" aria-labelledby="dev-focus-title">
+        <h2 id="dev-focus-title">开发重点速览</h2>
+        <p class="hint">
+          这一部分用于帮助研发、测试、产品评审时快速抓住本次需求最需要优先查看和注意的内容。
+        </p>
+        <div class="focus-grid">
+          <div class="focus-item">
+            <h3>开发必看</h3>
+            <ul>
+              <li>{{开发必看1}}</li>
+              <li>{{开发必看2}}</li>
+              <li>{{开发必看3}}</li>
+            </ul>
+          </div>
+          <div class="focus-item">
+            <h3>重点注意</h3>
+            <ul>
+              <li>{{重点注意1}}</li>
+              <li>{{重点注意2}}</li>
+              <li>{{重点注意3}}</li>
+            </ul>
+          </div>
+          <div class="focus-item">
+            <h3>阻塞依赖</h3>
+            <ul>
+              <li>{{阻塞依赖1}}</li>
+              <li>{{阻塞依赖2}}</li>
+              <li>{{阻塞依赖3}}</li>
+            </ul>
+          </div>
+          <div class="focus-item">
+            <h3>高风险项</h3>
+            <ul>
+              <li>{{高风险项1}}</li>
+              <li>{{高风险项2}}</li>
+              <li>{{高风险项3}}</li>
+            </ul>
+          </div>
+        </div>
+      </aside>
 
       <section id="background-and-goals">
         <h2>1. 需求背景与目标</h2>
@@ -293,6 +418,22 @@
           <p><strong>适用角色：</strong>{{角色与权限}}</p>
           <p><strong>触发入口：</strong>{{入口}}</p>
           <p><strong>页面/视图：</strong>{{页面或视图}}</p>
+          <div class="callout callout-dev">
+            <h4>开发必看</h4>
+            <ul>
+              <li>{{该需求研发实现时必须先看的业务约束}}</li>
+              <li>{{关键接口 / 状态切换 / 权限控制}}</li>
+              <li>{{和现有代码或旧流程的兼容关系}}</li>
+            </ul>
+          </div>
+          <div class="callout callout-warn">
+            <h4>重点注意</h4>
+            <ul>
+              <li>{{容易漏掉的交互细节}}</li>
+              <li>{{容易误解的业务规则}}</li>
+              <li>{{跨角色 / 跨端差异}}</li>
+            </ul>
+          </div>
           <h3>交互步骤</h3>
           <ol>
             <li>{{步骤1}}</li>
@@ -319,6 +460,14 @@
               图源：{{MasterGo链接 / 页面截图路径 / 原型说明 / ui.md章节}}
             </p>
           </div>
+          <div class="callout callout-risk">
+            <h4>风险提醒</h4>
+            <ul>
+              <li>{{该需求的主要实现风险}}</li>
+              <li>{{异常处理与边界情况}}</li>
+              <li>{{联调或上线前必须验证的点}}</li>
+            </ul>
+          </div>
         </article>
       </section>
 
@@ -328,21 +477,21 @@
           <div class="card">
             <h3>前端开发事项</h3>
             <ul>
-              <li>{{前端事项1}}</li>
-              <li>{{前端事项2}}</li>
+              <li>{{前端事项1}} <span class="pill pill-high">必看</span></li>
+              <li>{{前端事项2}} <span class="pill pill-medium">注意</span></li>
             </ul>
             <h3>后端开发事项</h3>
             <ul>
-              <li>{{后端事项1}}</li>
-              <li>{{后端事项2}}</li>
+              <li>{{后端事项1}} <span class="pill pill-high">必看</span></li>
+              <li>{{后端事项2}} <span class="pill pill-medium">注意</span></li>
             </ul>
           </div>
           <div class="card">
             <h3>AI / 接口 / 数据依赖</h3>
             <ul>
-              <li>{{AI事项或留空}}</li>
-              <li>{{接口依赖}}</li>
-              <li>{{数据依赖}}</li>
+              <li>{{AI事项或留空}} <span class="pill pill-medium">注意</span></li>
+              <li>{{接口依赖}} <span class="pill pill-high">阻塞</span></li>
+              <li>{{数据依赖}} <span class="pill pill-high">阻塞</span></li>
             </ul>
             <h3>补充事项</h3>
             <ul>
@@ -355,6 +504,14 @@
 
       <section id="acceptance">
         <h2>5. 验收标准</h2>
+        <div class="callout callout-dev">
+          <h4>测试与联调重点</h4>
+          <ul>
+            <li>{{最容易出问题的主流程}}</li>
+            <li>{{必须覆盖的异常分支}}</li>
+            <li>{{上线前必须验证的关键场景}}</li>
+          </ul>
+        </div>
         <table>
           <thead>
             <tr>
@@ -450,6 +607,14 @@
 
       <section id="open-questions">
         <h2>8. 待确认问题</h2>
+        <div class="callout callout-warn">
+          <h4>当前最影响开发推进的待确认项</h4>
+          <ul>
+            <li>{{最影响排期的问题}}</li>
+            <li>{{最影响实现方案的问题}}</li>
+            <li>{{最影响验收闭环的问题}}</li>
+          </ul>
+        </div>
         <table>
           <thead>
             <tr>
