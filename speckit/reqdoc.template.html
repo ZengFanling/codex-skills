@@ -195,23 +195,53 @@
 
       .flowchart-block {
         margin-top: 12px;
-        padding: 16px;
-        border: 1px dashed #93c5fd;
-        border-radius: 10px;
-        background: #f8fbff;
       }
 
       .flowchart-canvas {
         margin-top: 10px;
-        padding: 20px;
-        border: 1px solid #dbeafe;
-        border-radius: 10px;
-        background: #fff;
-        min-height: 180px;
+        padding: 28px 24px 30px;
+        border-radius: 24px;
+        background: #141d33;
+        min-height: 240px;
+      }
+
+      .flowchart-label {
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        padding: 0 12px;
+        border-radius: 999px;
+        background: #eff6ff;
+        color: var(--brand);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .flow-sequence {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .flow-step {
+        color: #f5f7fb;
+        font-size: 20px;
+        line-height: 1.6;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+
+      .flow-arrow {
+        padding-left: 28px;
+        color: #d4dced;
+        font-size: 28px;
+        line-height: 1;
+        font-weight: 700;
       }
 
       .flowchart-caption {
-        margin-top: 10px;
+        margin-top: 12px;
         color: var(--muted);
       }
 
@@ -471,12 +501,24 @@
 
         <h3>核心流程</h3>
         <div class="flowchart-block">
-          <strong>流程图</strong>
+          <span class="flowchart-label">流程链路</span>
           <div class="flowchart-canvas">
-            {{在这里插入流程图：可使用 Mermaid / HTML流程块 / 截图说明 / 结构化箭头图}}
+            <div class="flow-sequence">
+              <div class="flow-step">{{步骤1：例如 AI 回复完成}}</div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-step">{{步骤2：例如 用户 60 秒未发出任何对话}}</div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-step">{{步骤3：例如 AI 自动追加结束引导语}}</div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-step">{{步骤4：例如 展示快捷按钮：结束对话并查看评分}}</div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-step">{{步骤5：例如 用户点击按钮 / 回复结束语 / 超时无响应}}</div>
+              <div class="flow-arrow">↓</div>
+              <div class="flow-step">{{步骤6：例如 结束当前会话并进入后续结果页}}</div>
+            </div>
           </div>
           <p class="flowchart-caption">
-            补充说明：{{如有必要，仅补充关键分支、异常路径、判断条件或结束结果}}
+            补充说明：{{如有必要，仅补充关键分支、判断条件、异常路径或结束结果}}
           </p>
         </div>
       </section>
