@@ -45,8 +45,12 @@
       }
 
       .hero {
-        padding: 28px 32px;
+        padding: 52px 56px;
         margin-bottom: 20px;
+        border-color: #bfdbfe;
+        border-radius: 32px;
+        background: linear-gradient(90deg, #eaf4ff 0%, #ffffff 34%, #ffffff 100%);
+        box-shadow: 0 0 0 1px rgba(191, 219, 254, 0.35) inset;
       }
 
       .focus-board {
@@ -57,35 +61,62 @@
       }
 
       .hero h1 {
-        margin: 0 0 8px;
-        font-size: 28px;
-        line-height: 1.25;
+        margin: 0 0 18px;
+        font-size: 40px;
+        line-height: 1.3;
+        font-weight: 700;
+        letter-spacing: 0;
       }
 
       .hero p {
         margin: 0;
-        color: var(--muted);
+        color: #5b6b7f;
+        font-size: 18px;
+        line-height: 1.8;
       }
 
-      .meta {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 12px;
-        margin-top: 20px;
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 16px;
+        margin-top: 34px;
       }
 
-      .meta-item {
-        padding: 12px 14px;
-        background: #fafafa;
-        border: 1px solid var(--line);
-        border-radius: 10px;
+      .hero-chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 50px;
+        padding: 0 20px;
+        border-radius: 999px;
+        background: #ffffff;
+        border: 2px solid #cfe2ff;
+        color: var(--brand);
+        font-size: 18px;
+        line-height: 1;
+        font-weight: 700;
+        box-shadow: 0 1px 2px rgba(22, 119, 255, 0.04);
       }
 
-      .meta-item .label {
-        display: block;
-        color: var(--muted);
-        font-size: 12px;
-        margin-bottom: 4px;
+      .hero-chip .chip-label {
+        margin-right: 8px;
+      }
+
+      .hero-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 50px;
+        padding: 0 22px;
+        border-radius: 999px;
+        background: var(--brand);
+        color: #ffffff;
+        font-size: 18px;
+        line-height: 1;
+        font-weight: 700;
+        text-decoration: none;
+        white-space: nowrap;
+        box-shadow: 0 8px 20px rgba(22, 119, 255, 0.18);
       }
 
       section {
@@ -159,6 +190,28 @@
       }
 
       .hint {
+        color: var(--muted);
+      }
+
+      .flowchart-block {
+        margin-top: 12px;
+        padding: 16px;
+        border: 1px dashed #93c5fd;
+        border-radius: 10px;
+        background: #f8fbff;
+      }
+
+      .flowchart-canvas {
+        margin-top: 10px;
+        padding: 20px;
+        border: 1px solid #dbeafe;
+        border-radius: 10px;
+        background: #fff;
+        min-height: 180px;
+      }
+
+      .flowchart-caption {
+        margin-top: 10px;
         color: var(--muted);
       }
 
@@ -258,10 +311,24 @@
       }
 
       @media (max-width: 900px) {
-        .meta,
         .grid-2,
         .focus-grid {
           grid-template-columns: 1fr;
+        }
+
+        .hero {
+          padding: 32px 24px;
+          border-radius: 24px;
+        }
+
+        .hero h1 {
+          font-size: 28px;
+        }
+
+        .hero p,
+        .hero-chip,
+        .hero-link {
+          font-size: 16px;
         }
       }
     </style>
@@ -271,23 +338,26 @@
       <header class="hero">
         <h1>{{项目名称}}需求方案</h1>
         <p>{{文档摘要：一句话说明本次需求方案的目标与适用范围}}</p>
-        <div class="meta">
-          <div class="meta-item">
-            <span class="label">版本</span>
-            <strong>{{版本号}}</strong>
+        <div class="hero-actions">
+          <div class="hero-chip">
+            <span class="chip-label">版本:</span>
+            <span>{{版本号}}</span>
           </div>
-          <div class="meta-item">
-            <span class="label">阶段</span>
-            <strong>需求方案 / reqdoc</strong>
+          <div class="hero-chip">
+            <span class="chip-label">更新日期:</span>
+            <span>{{YYYY-MM-DD}}</span>
           </div>
-          <div class="meta-item">
-            <span class="label">更新时间</span>
-            <strong>{{YYYY-MM-DD}}</strong>
+          <div class="hero-chip">
+            <span class="chip-label">优先级:</span>
+            <span>{{P0 / P1 / P2}}</span>
           </div>
-          <div class="meta-item">
-            <span class="label">负责人</span>
-            <strong>{{负责人}}</strong>
+          <div class="hero-chip">
+            <span class="chip-label">适用端:</span>
+            <span>{{移动端 H5 / App WebView / PC}}</span>
           </div>
+          <a class="hero-link" href="{{高保真效果图链接}}" target="_blank" rel="noreferrer">
+            查看高保真效果图
+          </a>
         </div>
       </header>
 
@@ -400,12 +470,15 @@
         </table>
 
         <h3>核心流程</h3>
-        <ol>
-          <li>{{流程入口}}</li>
-          <li>{{关键步骤1：用户动作 + 系统反馈}}</li>
-          <li>{{关键步骤2：用户动作 + 系统反馈}}</li>
-          <li>{{结束状态}}</li>
-        </ol>
+        <div class="flowchart-block">
+          <strong>流程图</strong>
+          <div class="flowchart-canvas">
+            {{在这里插入流程图：可使用 Mermaid / HTML流程块 / 截图说明 / 结构化箭头图}}
+          </div>
+          <p class="flowchart-caption">
+            补充说明：{{如有必要，仅补充关键分支、异常路径、判断条件或结束结果}}
+          </p>
+        </div>
       </section>
 
       <section id="details">
@@ -455,9 +528,9 @@
           </ul>
           <div class="ui-block">
             <strong>UI 图说明</strong>
-            <p>{{结合 MasterGo / 截图 / ui.md 对应页面进行说明}}</p>
+            <p>{{结合高保真效果图 / 截图 / ui.md 对应页面进行说明}}</p>
             <p class="hint">
-              图源：{{MasterGo链接 / 页面截图路径 / 原型说明 / ui.md章节}}
+              图源：{{高保真效果图链接 / 页面截图路径 / 原型说明 / ui.md章节}}
             </p>
           </div>
           <div class="callout callout-risk">
