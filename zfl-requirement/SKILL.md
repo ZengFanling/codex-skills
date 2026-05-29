@@ -1,11 +1,11 @@
 ---
-name: speckit-requirement
-description: 独立的需求分析与调研 skill。Use when the user wants to单独做需求分析、需求调研、需求澄清、问题驱动访谈、角色权限梳理、现有流程分析，或提到 `/speckit.requirement`、`需求分析`、`需求调研`、`requirement.md`。
+name: zfl-requirement
+description: 独立的需求分析与调研 skill。Use when the user wants to单独做需求分析、需求调研、需求澄清、问题驱动访谈、角色权限梳理、现有流程分析，或提到 `zfl-requirement`、`需求分析`、`需求调研`、`requirement.md`。
 ---
 
-# Speckit Requirement
+# ZFL Requirement
 
-这个 skill 是从 `speckit` 中拆出来的独立“需求分析”模块，只负责把模糊表述逐步逼近为真实需求，并沉淀 `requirement.md`。
+这是一个独立的“需求分析” skill，只负责把模糊表述逐步逼近为真实需求，并沉淀 `requirement.md`。
 
 ## 目标
 
