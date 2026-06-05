@@ -253,7 +253,9 @@ description: "Codex 版规范驱动开发（SDD）工作流。Use when the user 
 
 ### 4. `/speckit.reqdoc`
 
-产出 `reqdoc.html`，把需求整理成可执行的产品方案。
+产出 `reqdoc.html`。
+
+这个阶段的目标是把需求整理成 **可直接在浏览器打开、可评审、可继续补充的 HTML 需求方案文档**，并默认落盘到当前版本目录下的 `.spec/<current-version>/reqdoc.html`。
 
 这里的产物不是 Markdown，而是 **可直接在浏览器打开的 HTML 文档**。默认要求：
 
@@ -275,7 +277,7 @@ description: "Codex 版规范驱动开发（SDD）工作流。Use when the user 
 7. `非功能需求`
 8. `待确认问题`
 
-各部分至少包含：
+各部分要求如下：
 
 #### 1. 需求背景与目标
 
@@ -300,7 +302,7 @@ description: "Codex 版规范驱动开发（SDD）工作流。Use when the user 
 - 关键用户旅程
 - 是否属于本期必做
 
-核心流程建议明确到：
+核心流程要求：
 
 - 优先使用 **纵向步骤流** 形式展示，默认采用深色大块承载步骤、每步之间用向下箭头串联
 - 展示效果应接近“流程面板”，而不是普通列表或轻量示意图
