@@ -121,7 +121,7 @@ async function callOpenAI(messages, temperature) {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${AI_API_KEY}`,
     },
-    body: JSON.stringify({ model: AI_MODEL, messages, temperature, max_tokens: 2048 }),
+    body: JSON.stringify({ model: AI_MODEL, messages, temperature, max_tokens: 16384 }),
     signal: AbortSignal.timeout(60000),
   });
   if (!resp.ok) {
@@ -166,7 +166,7 @@ async function callAnthropicAI(messages, temperature) {
 
   const systemPrompt = systemParts.join('\n\n');
   const url = `${ANTHROPIC_BASE_URL}/v1/messages`;
-  const body = { model: ANTHROPIC_MODEL, max_tokens: 2048, temperature, messages: apiMessages };
+  const body = { model: ANTHROPIC_MODEL, max_tokens: 16384, temperature, messages: apiMessages };
   if (systemPrompt) body.system = systemPrompt;
 
   const resp = await fetch(url, {
@@ -193,7 +193,7 @@ async function callAnthropicAI(messages, temperature) {
 }
 
 // ---------- 流式 AI 调用（SSE 生成器）----------
-async function* streamAI(messages, temperature = AI_TEMPERATURE, maxTokens = 12000) {
+async function* streamAI(messages, temperature = AI_TEMPERATURE, maxTokens = 16384) {
   if (!AI_ENABLED) throw new Error('AI 未配置');
   if (AI_API_TYPE === 'anthropic') {
     yield* streamAnthropicAI(messages, temperature, maxTokens);
