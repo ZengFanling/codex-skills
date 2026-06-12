@@ -606,10 +606,28 @@ app.post('/api/generate-reqdoc', async (req, res) => {
     return res.status(503).json({ error: 'AI 服务未配置', hint: '请在 server/.env 中设置 API Key' });
   }
 
-  const { requirementType, evolutionType, freeformAnswers } = req.body;
+  const { requirementType, evolutionType, freeformAnswers, conversation } = req.body;
   const answersText = (freeformAnswers || [])
     .map((a) => `问：${a.question}\n答：${a.answer}`)
     .join('\n\n');
+
+  // 将完整对话记录格式化为自然文本（包含 AI 的分析/总结）
+  const conversationText = (conversation || [])
+    .map(m => `【${m.type === 'assistant' ? 'AI访员' : '用户'}】：${m.content}`)
+    .join('\n\n');
+
+  // 构造给 AI 的上下文：完整对话 + 原始 Q&A 摘录
+  const userContext = `下面是一段需求访谈的完整对话记录（包含 AI 访员的引导、分析、总结，以及用户的所有回答）。请仔细阅读全部内容，基于整个访谈上下文（而非仅 QA 摘录）来撰写需求分析报告。
+
+=== 完整访谈对话 ===
+
+${conversationText}
+
+=== 用户原始回答摘录（供快速索引） ===
+
+${answersText}
+
+请根据以上完整对话内容，生成需求分析报告。`;
 
   const dateStr = new Date().toISOString().split('T')[0];
 
@@ -727,7 +745,7 @@ ${requirementType === 'ai' ? `
   try {
     const messages = [
       { role: 'system', content: sysPrompt },
-      { role: 'user', content: `以下是需求访谈的全部问答记录。请严格按照上述文档结构（一、项目背景 / 二、需求拆解 / 三、评测集）生成需求分析报告：\n\n${answersText}` },
+      { role: 'user', content: userContext },
     ];
     const stream = streamAI(messages, 0.7, 12000);
     for await (const chunk of stream) {
