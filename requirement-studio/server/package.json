@@ -1,0 +1,15 @@
+{
+  "name": "requirement-studio-server",
+  "version": "1.0.0",
+  "description": "需求工作室后端服务 — AI 驱动的需求访谈引擎",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5"
+  }
+}

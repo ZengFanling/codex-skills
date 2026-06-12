@@ -1,0 +1,2424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>需求工作室 — 智能需求访谈</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --brand: #2C68FF;
+  --brand-hover: #3B7AFF;
+  --brand-glow: rgba(44,104,255,0.18);
+  --brand-ghost: rgba(44,104,255,0.08);
+  --base: #09090b;
+  --base-2: #0f0f14;
+  --surface: #13131a;
+  --surface-2: #18181f;
+  --surface-3: #1e1e26;
+  --text: #ececee;
+  --text-secondary: #9898a8;
+  --text-muted: #5c5c6e;
+  --border: rgba(255,255,255,0.06);
+  --border-strong: rgba(255,255,255,0.10);
+  --glass-border: rgba(255,255,255,0.08);
+  --glass-bg: rgba(19,19,26,0.72);
+  --success: #22c55e;
+  --success-glow: rgba(34,197,94,0.18);
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --danger-glow: rgba(239,68,68,0.15);
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --sidebar-w: 296px;
+  --spring: cubic-bezier(0.16,1,0.3,1);
+  --spring-slow: cubic-bezier(0.34,1.56,0.64,1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ===== HOMEPAGE MODE ===== */
+body.homepage .main {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at 50% 50%, rgba(44,104,255,0.06) 0%, transparent 60%);
+}
+
+body.homepage .chat-header { display: none; }
+body.homepage .chat-area { display: none; }
+
+.homepage-hero {
+  display: none; flex-direction: column; align-items: center;
+  text-align: center; max-width: 520px;
+  animation: heroIn 0.6s var(--spring-slow) both;
+}
+
+@keyframes heroIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+body.homepage .homepage-hero { display: flex; }
+
+.homepage-hero .hero-icon {
+  width: 56px; height: 56px; margin-bottom: 20px;
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+
+.homepage-hero .hero-icon svg {
+  width: 56px; height: 56px;
+}
+
+.homepage-hero h1 {
+  font-family: 'Outfit',sans-serif;
+  font-size: 32px; font-weight: 700;
+  letter-spacing: -0.02em; color: var(--text);
+  margin-bottom: 10px;
+}
+
+.homepage-hero .hero-sub {
+  font-size: 15px; color: var(--text-secondary);
+  line-height: 1.7; margin-bottom: 24px;
+}
+
+.homepage-hero .hero-hints {
+  display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+}
+
+.homepage-hero .hero-hint {
+  padding: 6px 14px; border-radius: 99px;
+  font-size: 12px; color: var(--text-secondary);
+  background: var(--surface-2); border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+body.homepage .input-area {
+  max-width: 560px; width: 90%;
+  margin-top: 32px;
+  border-top: none; padding: 0;
+  animation: heroIn 0.6s var(--spring-slow) 0.1s both;
+}
+
+body.homepage .input-area .file-preview-area { display: none; }
+
+body {
+  font: 14px/1.7 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background: var(--base);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Background grid pattern */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(44,104,255,0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(99,102,241,0.02) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(44,104,255,0.015) 0%, transparent 70%);
+  background-size: 100% 100%;
+}
+
+/* Subtle dot grid overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.25;
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.app { display: flex; height: 100vh; position: relative; z-index: 1; }
+
+/* ===== SVG ICONS ===== */
+.svg-icon { width: 18px; height: 18px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; }
+.svg-icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.svg-icon.filled svg { fill: currentColor; }
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-right: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  z-index: 10;
+  position: relative;
+}
+
+.sidebar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+.sidebar-header {
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-mark {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+
+.logo-mark svg {
+  width: 40px; height: 40px;
+}
+
+.sidebar-logo .logo-text h1 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px; font-weight: 700;
+  color: var(--text); letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.sidebar-logo .logo-text .sub {
+  font-size: 10px; color: var(--text-muted);
+  font-weight: 500; letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* AI status badge */
+.ai-status {
+  display: inline-flex; align-items: center; gap: 5px;
+  margin-top: 6px;
+  padding: 3px 8px; border-radius: 99px;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: all 0.3s var(--spring);
+}
+
+.ai-status.online {
+  background: rgba(34,197,94,0.1); color: #4ade80;
+  border: 1px solid rgba(34,197,94,0.2);
+}
+
+.ai-status.offline {
+  background: rgba(239,68,68,0.08); color: #f87171;
+  border: 1px solid rgba(239,68,68,0.15);
+}
+
+.ai-status.checking {
+  background: rgba(245,158,11,0.08); color: #fbbf24;
+  border: 1px solid rgba(245,158,11,0.15);
+  animation: breathe 2s ease-in-out infinite;
+}
+
+.ai-status-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ai-status.online .ai-status-dot {
+  background: #22c55e;
+  box-shadow: 0 0 6px rgba(34,197,94,0.5);
+}
+
+.ai-status.offline .ai-status-dot {
+  background: #ef4444;
+}
+
+.ai-status.checking .ai-status-dot {
+  background: #f59e0b;
+}
+
+.sidebar-progress {
+  padding: 18px 24px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.progress-label {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 11px; color: var(--text-muted); font-weight: 600;
+  letter-spacing: 0.03em; text-transform: uppercase; margin-bottom: 10px;
+}
+
+.progress-bar {
+  height: 4px; background: var(--surface-3);
+  border-radius: 99px; overflow: hidden; position: relative;
+}
+
+.progress-fill {
+  height: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, var(--brand) 0%, #60a5fa 100%);
+  transition: width 0.6s var(--spring);
+  position: relative;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute; top: 0; right: 0; bottom: 0;
+  width: 40px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25));
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.domain-nav { flex: 1; overflow-y: auto; padding: 6px 12px; }
+
+.domain-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 14px; border-radius: var(--radius-sm);
+  font-size: 12.5px; color: var(--text-muted); cursor: default;
+  transition: all 0.3s var(--spring);
+  margin-bottom: 1px;
+  position: relative;
+}
+
+.domain-item .domain-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+  transition: all 0.3s var(--spring);
+}
+
+.domain-item .domain-label {
+  display: flex; align-items: center; gap: 8px;
+  font-weight: 500;
+}
+
+.domain-item .domain-icon-svg {
+  width: 16px; height: 16px;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0.5;
+  transition: opacity 0.3s var(--spring);
+}
+
+.domain-item .domain-icon-svg svg {
+  width: 100%; height: 100%;
+  stroke: currentColor; fill: none;
+  stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+}
+
+.domain-item.current {
+  background: var(--brand-ghost);
+  color: var(--brand);
+  font-weight: 600;
+}
+
+.domain-item.current .domain-dot {
+  background: var(--brand);
+  box-shadow: 0 0 8px var(--brand-glow);
+  animation: breathe 2s ease-in-out infinite;
+}
+
+.domain-item.current .domain-icon-svg { opacity: 1; }
+
+.domain-item.done {
+  color: var(--success);
+}
+
+.domain-item.done .domain-dot {
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success-glow);
+}
+
+.domain-item.done .domain-icon-svg { opacity: 0.8; }
+
+@keyframes breathe {
+  0%,100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.6); opacity: 0.6; }
+}
+
+/* ===== HISTORY SECTION ===== */
+.history-section {
+  border-top: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.history-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.2s;
+}
+
+.history-header:hover { opacity: 0.8; }
+
+.history-header-label {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11px; font-weight: 600; color: var(--text-muted);
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+
+.history-header-label svg {
+  width: 13px; height: 13px;
+  stroke: currentColor; fill: none;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+
+.history-toggle {
+  width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted); transition: transform 0.3s var(--spring);
+}
+
+.history-toggle.collapsed { transform: rotate(-90deg); }
+
+.history-list {
+  overflow-y: auto; padding: 0 12px 8px;
+  display: flex; flex-direction: column; gap: 3px;
+  max-height: 200px;
+  flex: 1;
+}
+
+.history-list.collapsed { display: none; }
+
+.history-item {
+  padding: 7px 10px; border-radius: 8px;
+  cursor: pointer; transition: all 0.25s var(--spring);
+  border: 1px solid transparent;
+  position: relative;
+}
+
+.history-item:hover {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+}
+
+.history-item.active {
+  background: var(--brand-ghost);
+  border-color: rgba(44,104,255,0.2);
+}
+
+.history-item-title {
+  font-size: 12px; font-weight: 600; color: var(--text);
+  line-height: 1.3; margin-bottom: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.history-item-meta {
+  font-size: 10px; color: var(--text-muted);
+  display: flex; align-items: center; gap: 6px;
+}
+
+.history-item-delete {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  width: 20px; height: 20px; border-radius: 5px; border: none;
+  background: transparent; color: var(--text-muted); cursor: pointer;
+  display: none; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+
+.history-item:hover .history-item-delete { display: flex; }
+
+.history-item-delete:hover { background: var(--danger-glow); color: var(--danger); }
+
+.history-item-delete svg {
+  width: 12px; height: 12px;
+  stroke: currentColor; fill: none;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+
+.history-empty {
+  padding: 12px 10px; text-align: center;
+  font-size: 11px; color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* ===== UPLOAD BUTTON ===== */
+.btn-upload {
+  width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border-strong);
+  background: var(--surface-3); color: var(--text-muted); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.25s var(--spring);
+  position: relative;
+}
+
+.btn-upload:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+  background: var(--brand-ghost);
+}
+
+.btn-upload:active { transform: scale(0.94); }
+
+.btn-upload svg {
+  width: 16px; height: 16px;
+  stroke: currentColor; fill: none;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+}
+
+.btn-upload.has-files {
+  border-color: var(--brand);
+  color: var(--brand);
+  background: var(--brand-ghost);
+}
+
+/* ===== FILE PREVIEW ===== */
+.file-preview-area {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  padding: 6px 0 0 0;
+  max-height: 60px; overflow-y: auto;
+}
+
+.file-preview-area:empty { display: none; }
+
+.file-preview-item {
+  display: flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 6px;
+  background: var(--surface-3);
+  border: 1px solid var(--border-strong);
+  font-size: 11px; color: var(--text-secondary);
+  animation: msgSlideIn 0.3s var(--spring-slow);
+  max-width: 200px;
+}
+
+.file-preview-item .file-icon {
+  width: 14px; height: 14px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.file-preview-item .file-icon svg {
+  width: 100%; height: 100%;
+  stroke: currentColor; fill: none;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+}
+
+.file-preview-item .file-thumb {
+  width: 28px; height: 28px; border-radius: 4px; flex-shrink: 0;
+  object-fit: cover; border: 1px solid var(--border-strong);
+}
+
+.file-preview-item .file-name {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  flex: 1; min-width: 0;
+}
+
+.file-preview-item .file-remove {
+  width: 16px; height: 16px; border-radius: 3px; border: none;
+  background: transparent; color: var(--text-muted); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; padding: 0; transition: all 0.2s;
+}
+
+.file-preview-item .file-remove:hover { background: var(--danger-glow); color: var(--danger); }
+
+.file-preview-item .file-remove svg {
+  width: 10px; height: 10px;
+  stroke: currentColor; fill: none;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+
+.file-preview-item.file-error {
+  border-color: rgba(239,68,68,0.3);
+  color: var(--danger);
+}
+
+/* ===== IMAGE IN CHAT ===== */
+.msg-image-grid {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;
+}
+
+.msg-image-thumb {
+  max-width: 200px; max-height: 140px; border-radius: 8px;
+  border: 1px solid var(--border-strong); object-fit: cover;
+  cursor: pointer; transition: transform 0.2s var(--spring), box-shadow 0.2s var(--spring);
+}
+
+.msg-image-thumb:hover {
+  transform: scale(1.03);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
+/* 图片放大灯箱 */
+.image-lightbox {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(16px);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; animation: fadeIn 0.2s ease-out;
+}
+
+.image-lightbox img {
+  max-width: 90vw; max-height: 90vh; border-radius: 12px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+  animation: slideUp 0.3s var(--spring-slow);
+}
+
+/* ===== SIDEBAR FOOTER ===== */
+.sidebar-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.btn-export {
+  width: 100%; padding: 10px 16px;
+  border: 1px solid rgba(44,104,255,0.3); border-radius: var(--radius-sm);
+  background: var(--brand-ghost); color: var(--brand);
+  font-family: 'Outfit',sans-serif; font-size: 13px; font-weight: 600;
+  cursor: pointer; letter-spacing: 0.01em;
+  transition: all 0.3s var(--spring);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+
+.btn-export:hover:not(:disabled) {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+  box-shadow: 0 4px 20px var(--brand-glow);
+  transform: translateY(-1px);
+}
+
+.btn-export:active:not(:disabled) { transform: scale(0.97); }
+
+.btn-export:disabled {
+  opacity: 0.3; cursor: not-allowed;
+}
+
+/* ===== MAIN CHAT ===== */
+.main {
+  flex: 1; display: flex; flex-direction: column;
+  min-width: 0; position: relative;
+  background: radial-gradient(ellipse at 50% 0%, rgba(44,104,255,0.03) 0%, transparent 70%);
+}
+
+.chat-header {
+  padding: 16px 28px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid var(--glass-border);
+  display: flex; align-items: center; justify-content: space-between;
+  position: relative;
+}
+
+.chat-header::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-strong) 30%, var(--border-strong) 70%, transparent);
+}
+
+.chat-header h2 {
+  font-family: 'Outfit',sans-serif;
+  font-size: 14px; font-weight: 600;
+  color: var(--text); letter-spacing: -0.01em;
+}
+
+.chat-meta {
+  font-size: 11px; color: var(--text-muted);
+  display: flex; gap: 10px; align-items: center;
+}
+
+.type-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 99px;
+  font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.type-badge.ai {
+  background: rgba(139,92,246,0.12); color: #a78bfa;
+  border: 1px solid rgba(139,92,246,0.2);
+}
+
+.type-badge.traditional {
+  background: var(--brand-ghost); color: #60a5fa;
+  border: 1px solid rgba(44,104,255,0.2);
+}
+
+.type-badge.new {
+  background: rgba(34,197,94,0.1); color: #4ade80;
+  border: 1px solid rgba(34,197,94,0.2);
+}
+
+.type-badge.evolve {
+  background: rgba(245,158,11,0.1); color: #fbbf24;
+  border: 1px solid rgba(245,158,11,0.2);
+}
+
+.btn-restart {
+  padding: 5px 14px; border: 1px solid var(--border-strong);
+  border-radius: 6px; background: transparent;
+  color: var(--text-muted); font-size: 11px; font-weight: 500;
+  cursor: pointer; transition: all 0.3s var(--spring);
+  white-space: nowrap; font-family: inherit;
+}
+
+.btn-restart:hover {
+  background: var(--danger-glow);
+  color: var(--danger);
+  border-color: rgba(239,68,68,0.3);
+}
+
+.btn-restart:active { transform: scale(0.96); }
+
+/* ===== CHAT AREA ===== */
+.chat-area {
+  flex: 1; overflow-y: auto; padding: 28px 32px;
+  display: flex; flex-direction: column; gap: 24px;
+  scroll-behavior: smooth;
+}
+
+/* ===== MESSAGES ===== */
+.message {
+  display: flex; gap: 14px; max-width: 680px;
+  animation: msgSlideIn 0.45s var(--spring-slow) both;
+  opacity: 0;
+}
+
+@keyframes msgSlideIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.message.assistant { align-self: flex-start; }
+.message.user { align-self: flex-end; flex-direction: row-reverse; }
+
+.msg-avatar {
+  width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+
+.msg-avatar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+  pointer-events: none;
+}
+
+.msg-avatar.assistant-avatar {
+  background: linear-gradient(135deg, var(--brand) 0%, #1e40af 100%);
+  box-shadow: 0 2px 12px var(--brand-glow);
+}
+
+.msg-avatar.assistant-avatar svg {
+  width: 18px; height: 18px; stroke: #fff; fill: none;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+}
+
+.msg-avatar.user-avatar {
+  background: var(--surface-3);
+  border: 1px solid var(--border-strong);
+}
+
+.msg-avatar.user-avatar svg {
+  width: 16px; height: 16px; stroke: var(--text-secondary); fill: none;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+}
+
+.msg-bubble {
+  padding: 14px 18px; border-radius: var(--radius-lg);
+  font-size: 13.5px; line-height: 1.75; position: relative;
+}
+
+.message.assistant .msg-bubble {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top-left-radius: 4px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.02);
+}
+
+.message.user .msg-bubble {
+  background: linear-gradient(135deg, var(--brand) 0%, #1d4ed8 100%);
+  color: #fff;
+  border-top-right-radius: 4px;
+  box-shadow: 0 4px 16px var(--brand-glow);
+}
+
+.msg-bubble p { margin-bottom: 8px; }
+.msg-bubble p:last-child { margin-bottom: 0; }
+.msg-bubble ul,.msg-bubble ol { padding-left: 20px; margin: 8px 0; }
+.msg-bubble li { margin-bottom: 5px; }
+.msg-bubble strong { font-weight: 600; }
+.msg-bubble em { color: var(--warn); font-style: normal; }
+
+/* Markdown 渲染样式 */
+.msg-bubble h2 { font-size: 16px; font-weight: 700; margin: 16px 0 10px; color: var(--text); letter-spacing: -0.3px; }
+.msg-bubble h3 { font-size: 14.5px; font-weight: 600; margin: 14px 0 8px; color: var(--text); }
+.msg-bubble h4 { font-size: 13.5px; font-weight: 600; margin: 10px 0 6px; color: var(--text-secondary); }
+.msg-bubble h2:first-child,
+.msg-bubble h3:first-child,
+.msg-bubble h4:first-child { margin-top: 0; }
+
+.msg-bubble table {
+  width: 100%; border-collapse: collapse; margin: 10px 0;
+  font-size: 12.5px; border-radius: var(--radius-sm); overflow: hidden;
+}
+.msg-bubble th {
+  background: var(--surface-2); color: var(--text); font-weight: 600;
+  padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border-strong);
+}
+.msg-bubble td {
+  padding: 7px 12px; border-bottom: 1px solid var(--border);
+  color: var(--text-secondary); vertical-align: top;
+}
+.msg-bubble tr:last-child td { border-bottom: none; }
+.msg-bubble tr:hover td { background: var(--surface-2); }
+
+.msg-bubble blockquote {
+  border-left: 3px solid var(--brand); margin: 10px 0; padding: 8px 14px;
+  background: var(--brand-ghost); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  color: var(--text-secondary); font-size: 13px;
+}
+
+.msg-bubble code {
+  background: var(--surface-3); color: var(--brand); padding: 2px 6px;
+  border-radius: 4px; font-size: 12.5px; font-family: 'SF Mono', Monaco, monospace;
+}
+.msg-bubble pre {
+  background: var(--base-2); padding: 12px 14px; border-radius: var(--radius-sm);
+  overflow-x: auto; margin: 10px 0; border: 1px solid var(--border);
+}
+.msg-bubble pre code { background: none; padding: 0; color: var(--text); }
+
+.msg-bubble hr {
+  border: none; border-top: 1px solid var(--border); margin: 14px 0;
+}
+
+.msg-bubble a {
+  color: var(--brand); text-decoration: underline; text-underline-offset: 2px;
+}
+.msg-bubble a:hover { color: var(--brand-hover); }
+
+.message.user .msg-bubble strong { color: #fff; }
+.message.user .msg-bubble em { color: #fde68a; }
+
+.msg-bubble .highlight {
+  background: var(--brand-ghost); padding: 2px 8px; border-radius: 4px;
+  font-weight: 600; color: var(--brand); font-size: 0.95em;
+}
+
+/* ===== INPUT AREA ===== */
+.input-area {
+  padding: 16px 28px 24px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-top: 1px solid var(--glass-border);
+  position: relative;
+}
+
+.input-area::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-strong) 30%, var(--border-strong) 70%, transparent);
+}
+
+.input-wrapper {
+  display: flex; gap: 12px; align-items: flex-end;
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius); padding: 8px 8px 8px 18px;
+  transition: border-color 0.3s var(--spring), box-shadow 0.3s var(--spring);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+}
+
+.input-wrapper:focus-within {
+  border-color: rgba(44,104,255,0.4);
+  box-shadow: 0 0 0 3px rgba(44,104,255,0.08), inset 0 1px 0 rgba(44,104,255,0.04);
+}
+
+#userInput {
+  flex: 1; border: none; background: transparent; outline: none;
+  font-size: 13.5px; font-family: inherit; line-height: 1.6;
+  color: var(--text); resize: none;
+  min-height: 24px; max-height: 120px;
+  padding: 5px 0;
+}
+
+#userInput::placeholder { color: var(--text-muted); }
+
+.btn-send {
+  width: 40px; height: 40px; border-radius: 10px; border: none;
+  background: linear-gradient(135deg, var(--brand) 0%, #1d4ed8 100%);
+  color: #fff; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.3s var(--spring);
+  box-shadow: 0 2px 10px var(--brand-glow);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-send::after {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+.btn-send:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px var(--brand-glow);
+}
+
+.btn-send:active { transform: scale(0.93); }
+.btn-send:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+.btn-send svg {
+  width: 18px; height: 18px; stroke: #fff; fill: none;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+
+.input-hint {
+  font-size: 11px; color: var(--text-muted);
+  margin-top: 8px; padding-left: 4px;
+  opacity: 0.7;
+}
+
+/* ===== TYPING INDICATOR ===== */
+.typing-indicator {
+  display: flex; gap: 5px; padding: 4px 0;
+}
+
+.typing-indicator span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--text-muted);
+  animation: dotBounce 1.4s infinite ease-in-out both;
+}
+
+.typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+.typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes dotBounce {
+  0%,80%,100% { transform: scale(0.4); opacity: 0.3; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+.doc-analysis-indicator {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 0; font-size: 13px; color: var(--text-secondary);
+  animation: pulseText 1.5s ease-in-out infinite;
+}
+.doc-analysis-indicator::after {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--brand);
+  animation: dotBounce 1.4s infinite ease-in-out both;
+}
+
+/* 持久加载气泡 */
+.loading-indicator {
+  display: flex; align-items: center; gap: 10px;
+  padding: 4px 0;
+}
+.loading-text {
+  font-size: 13px; color: var(--text-secondary);
+  animation: pulseText 1.5s ease-in-out infinite;
+}
+.loading-dots { display: flex; gap: 4px; align-items: center; }
+.loading-dots i {
+  display: block; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--brand);
+  animation: dotBounce 1.4s infinite ease-in-out both;
+  opacity: 0.6;
+}
+.loading-dots i:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots i:nth-child(2) { animation-delay: -0.16s; }
+.loading-dots i:nth-child(3) { animation-delay: 0s; }
+
+@keyframes pulseText {
+  0%,100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* ===== EXPORT PANEL ===== */
+.result-overlay {
+  position: fixed; inset: 0;
+  background: rgba(2,2,6,0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100; animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn { from { opacity: 0; } }
+
+.result-panel {
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  width: 90%; max-width: 900px; max-height: 85vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5), 0 0 0 1px var(--border-strong);
+  animation: slideUp 0.4s var(--spring-slow);
+  position: relative;
+  overflow: hidden;
+}
+
+.result-panel::after {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(32px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.result-header {
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.result-header h3 {
+  font-family: 'Outfit',sans-serif; font-size: 15px; font-weight: 600;
+}
+
+.result-tabs {
+  display: flex; gap: 4px; padding: 4px;
+  background: var(--surface-2); border-radius: var(--radius-sm);
+}
+
+.result-tab {
+  padding: 7px 16px; border-radius: 7px; border: none;
+  background: transparent; font-size: 12px; font-weight: 500;
+  font-family: 'Outfit',sans-serif;
+  color: var(--text-secondary); cursor: pointer;
+  transition: all 0.25s var(--spring);
+}
+
+.result-tab.active {
+  background: var(--surface-3); color: var(--brand); font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.result-content {
+  flex: 1; overflow-y: auto; padding: 28px;
+}
+
+.result-content pre {
+  white-space: pre-wrap; word-break: break-word;
+  font-family: "SF Mono","Fira Code","Fira Mono","JetBrains Mono",monospace;
+  font-size: 12.5px; line-height: 1.75;
+  background: var(--base-2); padding: 24px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  max-height: 400px; overflow-y: auto;
+  color: var(--text-secondary);
+}
+
+.result-actions {
+  padding: 16px 28px;
+  border-top: 1px solid var(--border);
+  display: flex; gap: 10px; justify-content: flex-end;
+}
+
+.btn {
+  padding: 10px 20px; border-radius: var(--radius-sm); border: none;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  font-family: 'Outfit',sans-serif;
+  transition: all 0.3s var(--spring);
+  display: inline-flex; align-items: center; gap: 6px;
+}
+
+.btn:active { transform: scale(0.97); }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--brand) 0%, #1d4ed8 100%);
+  color: #fff;
+  box-shadow: 0 2px 12px var(--brand-glow);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 4px 20px var(--brand-glow);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: var(--surface-3); color: var(--text-secondary);
+  border: 1px solid var(--border-strong);
+}
+
+.btn-secondary:hover {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: rgba(255,255,255,0.12);
+}
+
+.btn-close {
+  width: 32px; height: 32px; border-radius: 8px; border: none;
+  background: var(--surface-3); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-secondary);
+  transition: all 0.25s var(--spring);
+}
+
+.btn-close:hover { background: var(--border-strong); color: var(--text); }
+.btn-close:active { transform: scale(0.92); }
+
+.btn-close svg {
+  width: 16px; height: 16px; stroke: currentColor; fill: none;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 800px) {
+  .sidebar { display: none; }
+  .message { max-width: 100%; }
+  .chat-area { padding: 16px; }
+  .input-area { padding: 12px 16px 20px; }
+  .chat-header { padding: 12px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 1024 1024">
+            <circle cx="512" cy="512" r="409.6" fill="#74C0FC"/>
+            <path d="M716.8 492.8c10.5984 0 19.2 8.6016 19.2 19.2a224 224 0 0 1-448 0 19.2 19.2 0 1 1 38.4 0 185.6 185.6 0 0 0 371.2 0c0-10.5984 8.6016-19.2 19.2-19.2z m-358.4-153.6c38.912 0 70.4 31.5392 70.4 70.4a19.2 19.2 0 1 1-38.4 0 32 32 0 1 0-64 0 19.2 19.2 0 1 1-38.4 0c0-38.912 31.5392-70.4 70.4-70.4z m307.2 0c38.912 0 70.4 31.5392 70.4 70.4a19.2 19.2 0 0 1-38.4 0 32 32 0 1 0-64 0 19.2 19.2 0 0 1-38.4 0c0-38.912 31.5392-70.4 70.4-70.4z" fill="#183153"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1>需求工作室</h1>
+          <div class="sub">智能访谈引擎</div>
+          <div class="ai-status checking" id="aiStatus">
+            <span class="ai-status-dot"></span>
+            <span id="aiStatusText">检测中...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-progress">
+      <div class="progress-label"><span>访谈进度</span><span id="progressPct">0%</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="progressBar" style="width:0%"></div></div>
+    </div>
+    <div class="domain-nav" id="domainNav"></div>
+    <div class="history-section">
+      <div class="history-header" id="historyHeader" onclick="toggleHistory()">
+        <span class="history-header-label">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          历史对话
+        </span>
+        <span class="history-toggle" id="historyToggle">
+          <svg viewBox="0 0 24 24" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+      </div>
+      <div class="history-list" id="historyList">
+        <div class="history-empty">暂无历史对话</div>
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <button class="btn-export" id="btnExport" disabled onclick="showExportPanel()">
+        <span class="svg-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+        需求分析文档
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CHAT -->
+  <div class="main">
+    <div class="homepage-hero">
+      <div class="hero-icon">
+        <svg viewBox="0 0 1024 1024"><circle cx="512" cy="512" r="409.6" fill="#74C0FC"/><path d="M716.8 492.8c10.5984 0 19.2 8.6016 19.2 19.2a224 224 0 0 1-448 0 19.2 19.2 0 1 1 38.4 0 185.6 185.6 0 0 0 371.2 0c0-10.5984 8.6016-19.2 19.2-19.2z m-358.4-153.6c38.912 0 70.4 31.5392 70.4 70.4a19.2 19.2 0 1 1-38.4 0 32 32 0 1 0-64 0 19.2 19.2 0 1 1-38.4 0c0-38.912 31.5392-70.4 70.4-70.4z m307.2 0c38.912 0 70.4 31.5392 70.4 70.4a19.2 19.2 0 0 1-38.4 0 32 32 0 1 0-64 0 19.2 19.2 0 0 1-38.4 0c0-38.912 31.5392-70.4 70.4-70.4z" fill="#183153"/></svg>
+      </div>
+      <h1>需求工作室</h1>
+      <div class="hero-sub">
+        像同事聊天一样，一步步帮你把模糊的想法<br>理成清晰的需求分析文档。
+      </div>
+      <div class="hero-hints">
+        <span class="hero-hint">💬 上传文档自动分析</span>
+        <span class="hero-hint">🖼️ 上传截图辅助理解</span>
+        <span class="hero-hint">📄 一键导出需求分析文档</span>
+      </div>
+    </div>
+    <div class="chat-header">
+      <h2>需求访谈</h2>
+      <div class="chat-meta">
+        <span id="typeBadge"></span>
+        <span id="stageLabel">初始阶段</span>
+        <button class="btn-restart" onclick="restartInterview()" title="重新开始">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:3px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+          重新开始
+        </button>
+      </div>
+    </div>
+    <div class="chat-area" id="chatArea"></div>
+    <div class="input-area">
+      <div class="input-wrapper">
+        <button class="btn-upload" id="btnUpload" onclick="document.getElementById('fileInput').click()" title="上传附件">
+          <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+        </button>
+        <input type="file" id="fileInput" style="display:none" multiple accept=".txt,.md,.json,.csv,.log,.yaml,.yml,.xml,.html,.js,.ts,.py,.java,.go,.rs,.vue,.css,image/*" onchange="handleFileUpload(event)">
+        <textarea id="userInput" placeholder="输入你的回答..." rows="1" onkeydown="handleKeydown(event)"></textarea>
+        <button class="btn-send" id="btnSend" onclick="sendMessage()">
+          <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+      <div class="file-preview-area" id="filePreviewArea"></div>
+      <div class="input-hint" id="inputHint">按 Enter 发送，Shift+Enter 换行</div>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT PANEL -->
+<div class="result-overlay" id="exportPanel" style="display:none" onclick="if(event.target===this)hideExportPanel()">
+  <div class="result-panel">
+    <div class="result-header">
+      <h3>文档预览</h3>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="result-tabs" style="font-size:13px;color:var(--text-secondary);font-weight:600;letter-spacing:0.02em">需求分析文档</span>
+        <button class="btn-close" onclick="hideExportPanel()">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="result-content" id="resultContent"><pre>加载中...</pre></div>
+    <div class="result-actions">
+      <button class="btn btn-secondary" onclick="hideExportPanel()">关闭</button>
+      <button class="btn btn-secondary" onclick="copyDocument()">复制全文</button>
+      <button class="btn btn-primary" id="btnDownload" onclick="downloadDocument()">下载文档</button>
+    </div>
+  </div>
+</div>
+
+<!-- Domain SVG icon templates (hidden) -->
+<svg style="display:none" id="svgTemplates" xmlns="http://www.w3.org/2000/svg">
+  <!-- business-goal: target/crosshair -->
+  <g id="svg-goal"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></g>
+  <!-- users-roles: users -->
+  <g id="svg-users"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></g>
+  <!-- scenario: search/eye -->
+  <g id="svg-scenario"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></g>
+  <!-- process-rules: git-branch -->
+  <g id="svg-process"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 00-9-9"/><circle cx="18" cy="6" r="3"/></g>
+  <!-- permissions: shield -->
+  <g id="svg-perm"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></g>
+  <!-- data-objects: database -->
+  <g id="svg-data"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></g>
+  <!-- ui-interaction: monitor -->
+  <g id="svg-ui"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></g>
+  <!-- tech-integration: link/plug -->
+  <g id="svg-tech"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></g>
+  <!-- acceptance: check-circle -->
+  <g id="svg-accept"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></g>
+  <!-- ai-capability: cpu/brain -->
+  <g id="svg-ai"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></g>
+  <!-- existing-analysis: file-text -->
+  <g id="svg-existing"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></g>
+  <!-- assistant avatar: sparkle/star -->
+  <g id="svg-assistant"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5z"/></g>
+  <!-- user avatar: user-circle -->
+  <g id="svg-user-avatar"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></g>
+  <!-- file icon -->
+  <g id="svg-file"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></g>
+  <!-- image icon -->
+  <g id="svg-image"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></g>
+  <!-- trash icon -->
+  <g id="svg-trash"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></g>
+  <!-- x close mini -->
+  <g id="svg-x-mini"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></g>
+</svg>
+
+<script>
+// ============================================================================
+// STATE (unchanged)
+// ============================================================================
+const state = {
+  phase: 'welcome',
+  requirementType: null,
+  evolutionType: null,
+  currentDomain: null,
+  domainIndex: 0,
+  interviewStep: 0,
+  answers: {},
+  freeformAnswers: [],
+  conversation: [],
+  isProcessing: false,
+  conversationId: null,
+  conversations: [],
+  uploadedFiles: [],
+  aiRequirementMd: '',
+  aiReqdocMd: '',
+};
+
+// ============================================================================
+// DOMAINS & QUESTIONS
+// ============================================================================
+const DOMAINS = [
+  {
+    key: 'business-goal',
+    label: '为什么要做？',
+    svgId: 'svg-goal',
+    questions: [
+      '请简单描述一下：<strong>为什么要做这个？</strong>它要解决什么具体麻烦？',
+      '如果<strong>不做</strong>，会有什么后果？现在最大的痛点是什么？',
+      '你怎么判断这件事<strong>"做好了"</strong>？省了多少时间？少了多少错？',
+    ],
+  },
+  {
+    key: 'users-roles',
+    label: '谁会用到？',
+    svgId: 'svg-users',
+    questions: [
+      '谁会用到这个功能？谁发起、谁处理、谁审批、谁看结果？',
+      '不同的人用起来<strong>有区别吗</strong>？（比如普通员工 vs 主管）',
+      '有没有<strong>外部的人</strong>也要用？（比如客户、合作方）',
+    ],
+  },
+  {
+    key: 'scenario',
+    label: '什么时候用？',
+    svgId: 'svg-scenario',
+    questions: [
+      '在<strong>什么情况下</strong>会用到？能描述一个典型的场景吗？',
+      '大概<strong>多久用一次</strong>？一天几次，还是一个月一两次？',
+      '用这个功能<strong>之前和之后</strong>，分别做什么？',
+    ],
+  },
+  {
+    key: 'process-rules',
+    label: '一步一步怎么做？',
+    svgId: 'svg-process',
+    questions: [
+      '从头到尾，<strong>一步步</strong>说一下。用户会经历哪些关键步骤？',
+      '有没有<strong>"如果是A就这样，是B就那样"</strong>的情况？',
+      '如果<strong>中间出了岔子</strong>（比如信息填错、网络断了），怎么处理？',
+    ],
+  },
+  {
+    key: 'permissions',
+    label: '谁能看？谁能做？',
+    svgId: 'svg-perm',
+    questions: [
+      '不同的人<strong>看到的内容一样吗</strong>？能做的操作一样吗？',
+      '数据是所有人能看到全部，还是<strong>按部门/区域分开看</strong>？',
+      '有没有需要<strong>特别控制的操作</strong>？（比如只有主管能审批、只有本人能修改）',
+    ],
+  },
+  {
+    key: 'data-objects',
+    label: '要记哪些信息？',
+    svgId: 'svg-data',
+    questions: [
+      '这个功能里会出现哪些<strong>"东西"</strong>？（比如一张工单、一条记录、一个申请单）',
+      '每个"东西"需要<strong>记什么</strong>？哪些是必填的？',
+      '这些信息之间<strong>有关联吗</strong>？（比如一个订单关联一个客户）',
+      '有没有<strong>状态会变化</strong>的情况？（比如"待处理 → 处理中 → 已完成"）',
+    ],
+  },
+  {
+    key: 'ui-interaction',
+    label: '长什么样？',
+    svgId: 'svg-ui',
+    questions: [
+      '大概会在哪些<strong>页面</strong>出现？列表页、详情页、还是弹窗？',
+      '页面上有哪些<strong>按钮、表格、搜索框</strong>之类的？',
+      '操作时，需不需要<strong>提示</strong>？（比如"保存成功""请确认删除"）',
+      '<strong>手机</strong>上也要用吗？还是只在电脑上？',
+    ],
+  },
+  {
+    key: 'acceptance',
+    label: '怎么算做好了？',
+    svgId: 'svg-accept',
+    questions: [
+      '做到什么程度就可以<strong>用了</strong>？有没有明确的验收标准？',
+      '有没有<strong>明确不做的</strong>？（说清楚"不做什么"有时候比"做什么"更重要）',
+      '目前还有哪些<strong>拿不准</strong>、需要后面再确认的地方？',
+      '你觉得有什么<strong>风险</strong>需要提前注意的？',
+    ],
+  },
+];
+
+const AI_QUESTIONS = [
+  {
+    key: 'ai-capability',
+    label: '需要多"聪明"？',
+    svgId: 'svg-ai',
+    questions: [
+      '为什么这个事普通规则搞不定，<strong>需要"聪明一点"</strong>？',
+      '它是<strong>帮人做决策</strong>，还是完全代替人？还是只是一个辅助小帮手？',
+      '如果它判断错了怎么办？<strong>有没有人能兜底</strong>？',
+      '怎么知道它做得好不好？（看准确率？省了多少时间？大家满不满意？）',
+    ],
+  },
+];
+
+const EVOLVE_QUESTIONS = [
+  {
+    key: 'existing-analysis',
+    label: '现在是怎么做的？',
+    svgId: 'svg-existing',
+    questions: [
+      '现在这件事<strong>是怎么做的</strong>？谁发起、谁处理、谁跟进？用了什么工具（哪怕只是Excel或微信群）？',
+      '一步步走一遍——<strong>哪一步最花时间、最容易搞错</strong>？',
+      '这次改动会影响<strong>哪些环节</strong>？原来的人分工要不要变？',
+      '遇到特殊情况现在<strong>怎么处理</strong>的？',
+      '以前的数据<strong>还要不要搬过来</strong>？',
+    ],
+  },
+];
+
+// ============================================================================
+// SVG icon helper
+// ============================================================================
+function getDomainIconHtml(svgId) {
+  return `<span class="domain-icon-svg"><svg viewBox="0 0 24 24"><use href="#${svgId}"/></svg></span>`;
+}
+
+// ============================================================================
+// INTERVIEW ENGINE (unchanged logic)
+// ============================================================================
+function getAllDomains() {
+  let domains = [...DOMAINS];
+  if (state.requirementType === 'ai') {
+    const insertAt = domains.findIndex(d => d.key === 'acceptance');
+    if (insertAt >= 0) domains.splice(insertAt, 0, ...AI_QUESTIONS);
+    else domains.push(...AI_QUESTIONS);
+  }
+  if (state.evolutionType === '1toN') domains.push(...EVOLVE_QUESTIONS);
+  return domains;
+}
+
+function getCurrentDomain() {
+  return getAllDomains()[state.domainIndex] || null;
+}
+
+function getCurrentQuestion() {
+  const d = getCurrentDomain();
+  return d ? d.questions[state.interviewStep] || null : null;
+}
+
+function isLastQuestionInDomain() {
+  const d = getCurrentDomain();
+  return d ? state.interviewStep >= d.questions.length - 1 : true;
+}
+
+function advanceInterview() {
+  const d = getCurrentDomain();
+  if (!d) return;
+  if (isLastQuestionInDomain()) {
+    state.domainIndex++;
+    state.interviewStep = 0;
+    state.currentDomain = getCurrentDomain()?.key || null;
+    if (!getCurrentDomain()) { state.phase = 'complete'; state.currentDomain = null; }
+  } else {
+    state.interviewStep++;
+  }
+}
+
+function getOptimalHints(domainKey) {
+  const hints = {
+    'business-goal': ['说清要解决什么麻烦', '不做会怎样', '怎么算做好了'],
+    'users-roles': ['哪些人会用', '不同人用的方式一样吗', '有没有外部的人也要用'],
+    'scenario': ['在什么情况下用', '多久用一次', '用之前和之后做什么'],
+    'process-rules': ['一步步怎么说', '有没有分支情况', '出了岔子怎么办'],
+    'permissions': ['不同人能看什么', '按什么分着看', '哪些操作要特别控制'],
+    'data-objects': ['会出现哪些"东西"', '每个要记什么', '信息之间怎么关联', '状态会不会变'],
+    'ui-interaction': ['在哪些页面出现', '有什么按钮表格', '操作有没有提示', '手机用不用'],
+    'ai-capability': ['为什么需要"聪明"', '帮人还是代替人', '错了谁兜底', '怎么评估好不好'],
+    'acceptance': ['做到什么程度能用', '明确不做什么', '拿不准的地方', '有什么风险'],
+    'existing-analysis': ['现在怎么做的', '哪里最花时间', '改什么环节', '数据搬不搬'],
+  };
+  return hints[domainKey] || ['请尽量具体地回答'];
+}
+
+// ============================================================================
+// UI RENDERING
+// ============================================================================
+function renderSidebar() {
+  const domains = getAllDomains();
+  const nav = document.getElementById('domainNav');
+  const currentIdx = state.domainIndex;
+
+  nav.innerHTML = domains.map((d, i) => {
+    let cls = 'domain-item';
+    if (i < currentIdx || (i === currentIdx && state.phase === 'complete')) cls += ' done';
+    else if (i === currentIdx) cls += ' current';
+    return `<div class="${cls}">
+      <span class="domain-dot"></span>
+      <span class="domain-label">${getDomainIconHtml(d.svgId)} ${d.label}</span>
+    </div>`;
+  }).join('');
+
+  const total = domains.length;
+  const current = state.phase === 'complete' ? total : state.domainIndex;
+  const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressBar').style.width = pct + '%';
+
+  const domain = getCurrentDomain();
+  document.getElementById('stageLabel').textContent = domain ? domain.label : (state.phase === 'complete' ? '已完成' : '初始阶段');
+
+  const badge = document.getElementById('typeBadge');
+  if (state.requirementType && state.evolutionType) {
+    const tl = state.requirementType === 'ai' ? 'AI需求' : '传统需求';
+    const el = state.evolutionType === '0to1' ? '0→1' : '1→N';
+    badge.innerHTML = `<span class="type-badge ${state.requirementType}">${tl}</span><span class="type-badge ${state.evolutionType === '0to1' ? 'new' : 'evolve'}">${el}</span>`;
+  } else if (state.requirementType) {
+    badge.innerHTML = `<span class="type-badge ${state.requirementType}">${state.requirementType === 'ai' ? 'AI需求' : '传统需求'}</span>`;
+  } else {
+    badge.innerHTML = '';
+  }
+
+  document.getElementById('btnExport').disabled = state.phase !== 'complete';
+}
+
+// ===== Markdown 渲染 =====
+function renderMarkdown(md) {
+  if (!md) return '';
+  let html = md;
+
+  // 先处理代码块（避免被后续规则干扰）
+  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+
+  // 行内代码
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+  // 表格
+  html = html.replace(/(\|[^\n]+\|\n\|[-:| ]+\|\n((?:\|[^\n]+\|\n?)*))/g, (match) => {
+    const rows = match.trim().split('\n');
+    let table = '<table>';
+    rows.forEach((row, i) => {
+      if (i === 1 && /^[\| -:]+$/.test(row)) return; // 分隔行
+      const cells = row.split('|').filter(c => c.trim());
+      const tag = i === 0 ? 'th' : 'td';
+      table += '<tr>' + cells.map(c => `<${tag}>${c.trim()}</${tag}>`).join('') + '</tr>';
+    });
+    return table + '</table>';
+  });
+
+  // 标题（先 ## 再 # 避免冲突）
+  html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+  // 引用块
+  html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+  html = html.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
+
+  // 无序列表
+  html = html.replace(/^[\-\*] (.+)$/gm, '<li>$1</li>');
+  html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
+
+  // 有序列表
+  html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+
+  // 加粗
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+  // 水平线
+  html = html.replace(/^---$/gm, '<hr>');
+
+  // 段落：将未被标签包裹的连续非空行包裹为 <p>
+  // 先去除已有的块级标签包裹，再将剩余文字分段
+  const blockTags = /<\/?(h[1-4]|ul|ol|li|table|pre|blockquote|hr|p)[^>]*>/i;
+  const lines = html.split('\n');
+  const result = [];
+  let paragraph = [];
+
+  function flushParagraph() {
+    if (paragraph.length > 0) {
+      const text = paragraph.join('\n').trim();
+      if (text && !blockTags.test(text)) {
+        result.push(`<p>${text}</p>`);
+      } else if (text) {
+        result.push(text);
+      }
+      paragraph = [];
+    }
+  }
+
+  for (const line of lines) {
+    if (line.trim() === '') {
+      flushParagraph();
+    } else if (blockTags.test(line)) {
+      flushParagraph();
+      result.push(line);
+    } else {
+      paragraph.push(line);
+    }
+  }
+  flushParagraph();
+
+  return result.join('\n');
+}
+
+function addMessage(type, content) {
+  const chat = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = `message ${type}`;
+  const avatarHtml = type === 'assistant'
+    ? `<div class="msg-avatar assistant-avatar"><svg viewBox="0 0 24 24"><use href="#svg-assistant"/></svg></div>`
+    : `<div class="msg-avatar user-avatar"><svg viewBox="0 0 24 24"><use href="#svg-user-avatar"/></svg></div>`;
+  // user 消息由 sendMessage 已构建好 HTML，直接使用；assistant 消息需要 markdown 渲染
+  const rendered = type === 'assistant' ? renderMarkdown(content) : content;
+  div.innerHTML = `${avatarHtml}<div class="msg-bubble">${rendered}</div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  state.conversation.push({ type, content, time: new Date().toISOString() });
+}
+
+function showTyping(callback, delay = 800) {
+  const chat = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = 'message assistant';
+  div.id = 'typingMsg';
+  div.innerHTML = `<div class="msg-avatar assistant-avatar"><svg viewBox="0 0 24 24"><use href="#svg-assistant"/></svg></div>
+    <div class="msg-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  document.getElementById('btnSend').disabled = true;
+  document.getElementById('userInput').disabled = true;
+  setTimeout(() => {
+    const t = document.getElementById('typingMsg');
+    if (t) t.remove();
+    document.getElementById('btnSend').disabled = false;
+    document.getElementById('userInput').disabled = false;
+    document.getElementById('userInput').focus();
+    if (callback) callback();
+  }, delay);
+}
+
+// 持久化加载气泡（在 API 调用期间保持显示）
+function showLoadingBubble(text) {
+  removeLoadingBubble();
+  const chat = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = 'message assistant loading-msg';
+  div.id = 'loadingBubble';
+  div.innerHTML = `<div class="msg-avatar assistant-avatar"><svg viewBox="0 0 24 24"><use href="#svg-assistant"/></svg></div>
+    <div class="msg-bubble">
+      <div class="loading-indicator">
+        <span class="loading-text">${escapeHtml(text)}</span>
+        <span class="loading-dots"><i></i><i></i><i></i></span>
+      </div>
+    </div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  document.getElementById('btnSend').disabled = true;
+  document.getElementById('userInput').disabled = true;
+}
+
+function removeLoadingBubble() {
+  const el = document.getElementById('loadingBubble');
+  if (el) el.remove();
+}
+
+function restoreInputAfterLoading() {
+  document.getElementById('btnSend').disabled = false;
+  document.getElementById('userInput').disabled = false;
+  document.getElementById('userInput').focus();
+}
+
+// ============================================================================
+// MESSAGE HANDLING (unchanged logic)
+// ============================================================================
+function sendMessage() {
+  if (state.isProcessing) return;
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if (!text && state.uploadedFiles.length === 0) return;
+
+  let displayText = text;
+  let fullAnswer = text;
+  let textToAnalyze = text;
+
+  if (state.uploadedFiles.length > 0) {
+    const fileNames = state.uploadedFiles.map(f => f.name).join('、');
+    const fileTag = `\n\n[已上传 ${state.uploadedFiles.length} 个文件：${fileNames}]`;
+    displayText = (text || '[上传了文件]') + fileTag;
+
+    const textFiles = state.uploadedFiles.filter(f => f.type === 'text');
+    if (textFiles.length > 0) {
+      const fileContents = textFiles.map(f => `--- 文件：${f.name} ---\n${f.content}`).join('\n\n');
+      fullAnswer = text + '\n\n[附件内容]\n' + fileContents;
+      textToAnalyze = text + '\n' + textFiles.map(f => f.content).join('\n');
+    }
+  }
+
+  let extraContent = '';
+  const imageFiles = state.uploadedFiles.filter(f => f.type === 'image');
+  if (imageFiles.length > 0) {
+    extraContent += '<div class="msg-image-grid">';
+    extraContent += imageFiles.map((f, i) => `<img class="msg-image-thumb" src="${f.dataUrl}" alt="${escapeHtml(f.name)}" onclick="openImageLightbox(this.src)" title="点击放大">`).join('');
+    extraContent += '</div>';
+  }
+  addMessage('user', `<p>${escapeHtml(displayText)}</p>${extraContent}`);
+  const pendingAttachments = state.uploadedFiles.length > 0
+    ? state.uploadedFiles.map(f => ({ name: f.name, type: f.type, content: f.content || '', dataUrl: f.dataUrl || '' }))
+    : [];
+  clearFilePreviews();
+  input.value = '';
+  input.style.height = 'auto';
+
+  if (state.currentDomain && !state.answers[state.currentDomain]) state.answers[state.currentDomain] = {};
+  if (state.currentDomain) state.answers[state.currentDomain][getCurrentQuestion()] = fullAnswer;
+  state.freeformAnswers.push({ question: getCurrentQuestion() || '初始想法', answer: fullAnswer });
+  state.isProcessing = true;
+  state._pendingAttachments = pendingAttachments;
+
+  if (!state.conversationId) state.conversationId = 'conv_' + Date.now();
+
+  processResponse(textToAnalyze);
+}
+
+function processResponse(text) {
+  document.body.classList.remove('homepage');  // 退出首页，进入访谈模式
+  if (backendAvailable) { processWithAI(text); return; }
+  processResponseLocal(text);
+}
+
+function processResponseLocal(text) {
+  if (state.phase === 'complete') {
+    showTyping(() => {
+      addMessage('assistant', '<p>当前访谈已完成。点击 <strong>「重新开始」</strong> 开始新对话，或点击 <strong>「导出需求文档」</strong> 查看结果。</p>');
+      saveCurrentConversation(); renderHistory();
+      state.isProcessing = false;
+    });
+    return;
+  }
+  if (state.phase === 'welcome') {
+    showTyping(() => {
+      const aiKw = ['AI','人工智能','智能','模型','GPT','大模型','LLM','机器学习','深度学习','推理','生成','识别','分类','推荐','对话','聊天','机器人','Bot','自动回答','自动回复','语义','NLP','自然语言','图像识别','语音识别','OCR','摘要','翻译','检索增强','RAG','预测','分析','算法','神经网络','自动判断','自动识别','聪明'];
+      const isAI = aiKw.some(kw => text.toLowerCase().includes(kw.toLowerCase()));
+      state.requirementType = isAI ? 'ai' : 'traditional';
+      state.phase = 'classifyEvolve';
+      const typeDesc = isAI ? '需要系统"聪明一点"（自动判断、自动识别）' : '需要一套固定的操作流程';
+      addMessage('assistant', `<p>好的，我大概理解了。听起来这是一个<strong>${typeDesc}</strong>的需求。</p>
+        <p>想再确认一下：这是<strong>从零开始做一个全新的东西</strong>，还是<strong>在你们现在已有的做法上改进</strong>？</p>`);
+      renderSidebar();
+      saveCurrentConversation(); renderHistory();
+      state.isProcessing = false;
+    });
+    return;
+  }
+  if (state.phase === 'classifyEvolve') {
+    showTyping(() => {
+      const lower = text.toLowerCase();
+      const is0to1 = /从零|全新|新做|没有|新建|从0|0到1|零基础|新系统|新功能|首创|from scratch|new|greenfield/.test(lower);
+      const is1toN = /现有|已有|改造|优化|增量|升级|迭代|扩展|重构|1到n|已有系统|原有|existing|migrate|refactor|改进|改一下/.test(lower);
+      state.evolutionType = is0to1 && !is1toN ? '0to1' : '1toN';
+      state.phase = 'interview'; state.domainIndex = 0; state.interviewStep = 0;
+      state.currentDomain = getCurrentDomain()?.key;
+      const label = state.evolutionType === '0to1' ? '从零开始的新东西' : '在现有基础上改进';
+      addMessage('assistant', `<p>明白了，是<strong>${label}</strong>。</p>
+        <p>那咱们开始聊吧。我会一个一个方面来问，你想到什么就说什么，不用想得太复杂。</p>
+        <p>先从第一个说起：</p>`);
+      setTimeout(() => { showTyping(() => {
+        const q = getCurrentQuestion();
+        if (q) { addMessage('assistant', `<p>${q}</p>`); updateHints(); }
+        state.isProcessing = false;
+        saveCurrentConversation(); renderHistory();
+      }, 600); }, 400);
+      renderSidebar();
+      return;
+    });
+  }
+  if (state.phase === 'interview') {
+    advanceInterview(); renderSidebar();
+    if (state.phase === 'complete') {
+      showTyping(() => {
+        addMessage('assistant', `<p>太好了，我们聊完了！我已经把关键信息都整理好了。</p>
+          <p>你可以：</p>
+          <ul><li>点击左侧底部的 <strong>「导出需求文档」</strong>按钮查看和下载</li>
+          <li>如果还有什么想补充的，也可以继续跟我说</li></ul>
+          <p>下面是你需求的结构化总结：</p>`);
+        setTimeout(() => { showTyping(() => {
+          addMessage('assistant', generateSummaryMessage());
+          state.isProcessing = false; renderSidebar();
+          saveCurrentConversation(); renderHistory();
+        }, 500); }, 400);
+      });
+      return;
+    }
+    showTyping(() => {
+      const d = getCurrentDomain(); const q = getCurrentQuestion();
+      if (d && q) {
+        if (state.interviewStep === 0) {
+          addMessage('assistant', `<p>好的。接下来我们聊聊 <strong>${d.label}</strong> 这方面。</p><p>${q}</p>`);
+        } else { addMessage('assistant', `<p>${q}</p>`); }
+      }
+      updateHints(); 
+      saveCurrentConversation(); renderHistory();
+      state.isProcessing = false;
+    });
+  }
+}
+
+function updateHints() {
+  const d = getCurrentDomain();
+  const hints = d ? getOptimalHints(d.key) : [];
+  document.getElementById('inputHint').textContent = hints.length ? hints.join('  |  ') + '  |  按 Enter 发送' : '按 Enter 发送，Shift+Enter 换行';
+}
+
+function generateSummaryMessage() {
+  const domains = getAllDomains();
+  let html = '<p><strong>需求访谈总结</strong></p><ul>';
+  for (const d of domains) {
+    const a = state.answers[d.key]; if (!a) continue;
+    const first = Object.values(a)[0];
+    if (first) html += `<li><strong>${d.label}：</strong>${escapeHtml(first.substring(0,80))}${first.length>80?'...':''}</li>`;
+  }
+  html += '</ul><p>完整内容请点击左侧 <strong>「导出需求文档」</strong>查看。</p>';
+  return html;
+}
+
+// ============================================================================
+// KEYBOARD & TEXTAREA
+// ============================================================================
+function handleKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const ta = document.getElementById('userInput');
+  ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 120) + 'px'; });
+});
+
+// ============================================================================
+// DOCUMENT GENERATION (unchanged logic)
+// ============================================================================
+function generateRequirementMd() {
+  const now = new Date();
+  const dateStr = now.toISOString().split('T')[0];
+  const initial = state.freeformAnswers[0];
+  const projectName = initial ? initial.answer.replace(/\n/g, ' ').trim().substring(0, 40) : '未命名项目';
+  const typeLabel = state.requirementType === 'ai' ? 'AI需求' : '功能需求';
+  const evolveLabel = state.evolutionType === '0to1' ? '0到1 新建' : '1到N 迭代';
+
+  let md = `# ${projectName} — 需求分析文档\n\n`;
+  md += `> **需求类型**：${typeLabel}（${evolveLabel}）\n`;
+  md += `> **文档日期**：${dateStr}\n`;
+  md += `> **需求来源**：需求工作室 AI 访谈\n\n---\n\n`;
+
+  md += `## 一、项目背景\n\n`;
+  const bgAnswers = state.answers['business-goal'] || {};
+  for (const a of Object.values(bgAnswers)) md += `${a}\n\n`;
+
+  md += `## 二、需求拆解\n\n`;
+  const domains = getAllDomains();
+  let reqIdx = 1;
+  for (const d of domains) {
+    const answers = state.answers[d.key] || {};
+    const values = Object.values(answers).filter(v => v && v.trim());
+    if (values.length === 0) continue;
+    md += `### 需求${reqIdx}：${d.label}\n\n`;
+    for (const a of values) md += `- ${a}\n`;
+    md += '\n';
+    reqIdx++;
+  }
+
+  md += `## 三、工时评估\n\n`;
+  md += `| 阶段 | 工作内容 | 预估工时 | 备注 |\n`;
+  md += `|------|----------|:--------:|------|\n`;
+  md += `| 需求确认与设计 | 需求细节确认、UI/交互设计 | 1-2 周 | 待业务确认 |\n`;
+  md += `| 核心开发 | 主要功能开发与联调 | 2-4 周 | 视复杂度调整 |\n`;
+  if (state.requirementType === 'ai') md += `| AI 能力开发 | 模型对接、知识库搭建、调优 | 2-4 周 | 视AI复杂程度 |\n`;
+  md += `| 测试与修复 | 功能测试、问题修复、UAT | 1-2 周 | |\n`;
+  md += `| 上线与培训 | 部署上线、用户培训 | 1 周 | |\n\n`;
+  md += `> ⚠️ 以上工时为粗略估算，实际需根据具体方案进一步评估。\n\n`;
+
+  md += `## 四、实施建议\n\n`;
+  md += `1. **分阶段推进**：优先交付核心功能，后续迭代增强\n`;
+  md += `2. **角色分工**：业务侧负责需求确认和验收，IT侧负责开发和测试\n`;
+  if (state.evolutionType === '1toN') {
+    md += `3. **兼容现有**：注意与现有流程/系统的衔接，避免影响线上业务\n`;
+  }
+  md += '\n';
+
+  md += `## 五、风险与应对\n\n`;
+  md += `| 风险 | 影响 | 应对策略 |\n`;
+  md += `|------|------|----------|\n`;
+  md += `| 需求理解偏差 | 开发方向错误 | 多方确认、原型验证 |\n`;
+  md += `| 资源或排期冲突 | 交付延迟 | 明确优先级、分阶段交付 |\n\n`;
+
+  md += `## 六、待确认事项\n\n`;
+  md += `| 事项 | 影响范围 | 建议由谁确认 | 不确认的风险 |\n`;
+  md += `|------|----------|:----------:|------------|\n`;
+  md += `| 需求细节补充确认 | 全局 | 业务方 | 开发受阻 |\n`;
+  if (state.requirementType === 'ai') md += `| AI效果预期对齐 | AI模块 | 业务方+IT | 交付不达预期 |\n`;
+  md += '\n';
+  md += `> 📎 本文档由需求工作室 AI 访谈引擎自动生成。\n`;
+
+  return md;
+}
+
+function generateReqdocMd() {
+  return generateRequirementMd();
+}
+
+// ============================================================================
+// EXPORT UI
+// ============================================================================
+let docsLoading = false;
+
+async function showExportPanel() {
+  document.getElementById('exportPanel').style.display = 'flex';
+  document.getElementById('resultContent').innerHTML = '<pre style="color:var(--text-muted);text-align:center;padding:40px">AI 正在生成需求分析文档...</pre>';
+
+  if (backendAvailable && !docsLoading) {
+    docsLoading = true;
+    try {
+      const md = await callBackendAPI('/api/generate-reqdoc', {
+        requirementType: state.requirementType,
+        evolutionType: state.evolutionType,
+        freeformAnswers: state.freeformAnswers,
+      });
+      state.aiReqdocMd = md;
+    } catch (e) {
+      console.warn('AI 文档生成失败，使用本地模板', e);
+    }
+    docsLoading = false;
+  }
+  document.getElementById('resultContent').innerHTML = `<pre>${escapeHtml(getDocumentContent())}</pre>`;
+}
+
+function getDocumentContent() {
+  return state.aiReqdocMd || generateRequirementMd();
+}
+
+function hideExportPanel() { document.getElementById('exportPanel').style.display = 'none'; }
+
+function copyDocument() {
+  const content = getDocumentContent();
+  navigator.clipboard.writeText(content).then(() => alert('已复制到剪贴板')).catch(() => alert('复制失败，请手动选择文本复制'));
+}
+
+function downloadDocument() {
+  const content = getDocumentContent();
+  // 从文档内容中提取项目名作为文件名前缀
+  const titleMatch = content.match(/^# (.+?) —/);
+  const projectName = titleMatch ? titleMatch[1].replace(/[\/\\:*?"<>|]/g, '-').trim() : '未命名项目';
+  const filename = `${projectName}需求方案文档.md`;
+  const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+// ============================================================================
+// UTILS
+// ============================================================================
+function escapeHtml(text) {
+  const div = document.createElement('div'); div.textContent = text; return div.innerHTML;
+}
+
+// ============================================================================
+// CONVERSATION HISTORY
+// ============================================================================
+function generateConversationTitle() {
+  // 优先使用初始想法
+  const firstAnswer = state.freeformAnswers[0];
+  if (firstAnswer && firstAnswer.answer) {
+    const t = firstAnswer.answer.replace(/\n/g, ' ').trim();
+    if (t) return t.length > 30 ? t.substring(0, 30) + '...' : t;
+  }
+  // 备用：用第一条用户消息
+  const firstUserMsg = state.conversation.find(m => m.type === 'user');
+  if (firstUserMsg) {
+    const t = firstUserMsg.content.replace(/<[^>]*>/g, '').replace(/\n/g, ' ').trim();
+    if (t) return t.length > 30 ? t.substring(0, 30) + '...' : t;
+  }
+  return '新对话';
+}
+
+function saveCurrentConversation() {
+  // 没有聊天内容就不保存
+  if (state.freeformAnswers.length === 0 && state.conversation.length === 0) return null;
+  const id = state.conversationId || 'conv_' + Date.now();
+  state.conversationId = id;
+  const entry = {
+    id,
+    title: generateConversationTitle(),
+    timestamp: new Date().toISOString(),
+    phase: state.phase,
+    requirementType: state.requirementType,
+    evolutionType: state.evolutionType,
+    currentDomain: state.currentDomain,
+    domainIndex: state.domainIndex,
+    interviewStep: state.interviewStep,
+    answers: JSON.parse(JSON.stringify(state.answers)),
+    freeformAnswers: [...state.freeformAnswers],
+    conversation: [...state.conversation],
+  };
+  const existingIdx = state.conversations.findIndex(c => c.id === id);
+  if (existingIdx >= 0) {
+    state.conversations[existingIdx] = entry;
+  } else {
+    state.conversations.unshift(entry);
+  }
+  if (state.conversations.length > 30) state.conversations = state.conversations.slice(0, 30);
+  // 持久化到 localStorage
+  persistConversations();
+  return id;
+}
+
+function persistConversations() {
+  try {
+    localStorage.setItem('reqstudio_conversations', JSON.stringify(state.conversations));
+    localStorage.setItem('reqstudio_latest_id', state.conversationId || '');
+  } catch (e) {
+    console.warn('localStorage 存储失败（可能已满），尝试清理旧数据', e.message);
+    // 只保留最近 10 条
+    state.conversations = state.conversations.slice(0, 10);
+    try { localStorage.setItem('reqstudio_conversations', JSON.stringify(state.conversations)); } catch {}
+  }
+}
+
+function loadHistoryFromStorage() {
+  try {
+    const raw = localStorage.getItem('reqstudio_conversations');
+    if (raw) {
+      state.conversations = JSON.parse(raw);
+    }
+    state.conversationId = localStorage.getItem('reqstudio_latest_id') || null;
+  } catch (e) {
+    console.warn('历史数据读取失败', e.message);
+    state.conversations = [];
+    state.conversationId = null;
+  }
+}
+
+function loadConversation(id) {
+  if (state.phase !== 'welcome' && state.freeformAnswers.length > 0) {
+    saveCurrentConversation();
+  }
+  const entry = state.conversations.find(c => c.id === id);
+  if (!entry) return;
+  document.body.classList.remove('homepage');
+  state.conversationId = entry.id;
+  state.phase = entry.phase;
+  state.requirementType = entry.requirementType;
+  state.evolutionType = entry.evolutionType;
+  state.currentDomain = entry.currentDomain;
+  state.domainIndex = entry.domainIndex;
+  state.interviewStep = entry.interviewStep;
+  state.answers = JSON.parse(JSON.stringify(entry.answers));
+  state.freeformAnswers = [...entry.freeformAnswers];
+  state.conversation = [];
+  state.isProcessing = false;
+  state.uploadedFiles = [];
+  document.getElementById('chatArea').innerHTML = '';
+  for (const msg of entry.conversation) {
+    const div = document.createElement('div');
+    div.className = `message ${msg.type}`;
+    const avatarHtml = msg.type === 'assistant'
+      ? `<div class="msg-avatar assistant-avatar"><svg viewBox="0 0 24 24"><use href="#svg-assistant"/></svg></div>`
+      : `<div class="msg-avatar user-avatar"><svg viewBox="0 0 24 24"><use href="#svg-user-avatar"/></svg></div>`;
+    div.innerHTML = `${avatarHtml}<div class="msg-bubble">${msg.content}</div>`;
+    document.getElementById('chatArea').appendChild(div);
+    state.conversation.push(msg);
+  }
+  document.getElementById('chatArea').scrollTop = document.getElementById('chatArea').scrollHeight;
+  document.getElementById('userInput').value = '';
+  document.getElementById('userInput').style.height = 'auto';
+  document.getElementById('btnSend').disabled = state.isProcessing;
+  document.getElementById('userInput').disabled = state.isProcessing;
+  document.getElementById('btnExport').disabled = state.phase !== 'complete';
+  clearFilePreviews();
+  renderSidebar(); renderHistory(); updateHints();
+  if (state.phase !== 'complete') document.getElementById('userInput').focus();
+}
+
+function deleteConversation(id, e) {
+  e.stopPropagation();
+  if (!confirm('确定要删除这条历史对话吗？')) return;
+  state.conversations = state.conversations.filter(c => c.id !== id);
+  if (state.conversationId === id) {
+    state.conversationId = null;
+    localStorage.setItem('reqstudio_latest_id', '');
+  }
+  persistConversations();
+  renderHistory();
+}
+
+function toggleHistory() {
+  const list = document.getElementById('historyList');
+  const toggle = document.getElementById('historyToggle');
+  const isCollapsed = list.classList.toggle('collapsed');
+  toggle.classList.toggle('collapsed', isCollapsed);
+}
+
+function formatTime(isoString) {
+  const d = new Date(isoString);
+  const now = new Date();
+  const diffDays = Math.floor((now - d) / 86400000);
+  const pad = n => String(n).padStart(2, '0');
+  const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  if (diffDays === 0) return `今天 ${time}`;
+  if (diffDays === 1) return `昨天 ${time}`;
+  if (diffDays < 7) return `${diffDays}天前`;
+  return `${d.getMonth() + 1}/${d.getDate()} ${time}`;
+}
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  if (state.conversations.length === 0) {
+    list.innerHTML = '<div class="history-empty">暂无历史对话</div>';
+    return;
+  }
+  list.innerHTML = state.conversations.map(c => {
+    const isActive = state.conversationId === c.id;
+    return `<div class="history-item${isActive ? ' active' : ''}" onclick="loadConversation('${c.id}')">
+      <div class="history-item-title">${escapeHtml(c.title)}</div>
+      <div class="history-item-meta">
+        <span>${formatTime(c.timestamp)}</span>
+        <span>${c.phase === 'complete' ? '已完成' : '进行中'}</span>
+      </div>
+      <button class="history-item-delete" onclick="deleteConversation('${c.id}', event)" title="删除">
+        <svg viewBox="0 0 24 24"><use href="#svg-trash"/></svg>
+      </button>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================================
+// FILE UPLOAD
+// ============================================================================
+function handleFileUpload(event) {
+  const files = Array.from(event.target.files);
+  if (files.length === 0) return;
+  files.forEach(file => processFile(file));
+  event.target.value = '';
+}
+
+function processFile(file) {
+  const maxSize = 10 * 1024 * 1024;
+  if (file.size > maxSize) {
+    addFilePreview(file.name, true, '文件过大 (超过10MB)');
+    return;
+  }
+  const isImage = file.type.startsWith('image/');
+  if (isImage) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      state.uploadedFiles.push({
+        name: file.name,
+        type: 'image',
+        dataUrl: e.target.result,
+        size: file.size,
+      });
+      addFilePreview(file.name, false, '', e.target.result);
+      updateUploadButton();
+    };
+    reader.readAsDataURL(file);
+  } else {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      state.uploadedFiles.push({
+        name: file.name,
+        type: 'text',
+        content: e.target.result,
+        size: file.size,
+      });
+      addFilePreview(file.name, false);
+      updateUploadButton();
+    };
+    reader.onerror = () => {
+      addFilePreview(file.name, true, '读取失败');
+    };
+    reader.readAsText(file);
+  }
+}
+
+function addFilePreview(name, isError, errorMsg = '', dataUrl = '') {
+  const area = document.getElementById('filePreviewArea');
+  const id = 'fp_' + Date.now() + '_' + Math.random().toString(36).substr(2,4);
+  const isImageType = /\.(png|jpg|jpeg|gif|webp|svg|bmp)$/i.test(name);
+  const iconHtml = isImageType && dataUrl
+    ? `<img class="file-thumb" src="${dataUrl}" alt="${escapeHtml(name)}">`
+    : `<span class="file-icon"><svg viewBox="0 0 24 24"><use href="#${isImageType ? 'svg-image' : 'svg-file'}"/></svg></span>`;
+  const div = document.createElement('div');
+  div.className = `file-preview-item${isError ? ' file-error' : ''}`;
+  div.id = id;
+  div.innerHTML = `${iconHtml}
+    <span class="file-name" title="${isError ? errorMsg : name}">${isError ? errorMsg : name}</span>
+    <button class="file-remove" onclick="removeFile('${id}')" title="移除">
+      <svg viewBox="0 0 24 24"><use href="#svg-x-mini"/></svg>
+    </button>`;
+  area.appendChild(div);
+}
+
+function removeFile(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    const idx = Array.from(el.parentElement.children).indexOf(el);
+    if (idx >= 0 && idx < state.uploadedFiles.length) {
+      state.uploadedFiles.splice(idx, 1);
+    }
+    el.style.opacity = '0';
+    el.style.transform = 'scale(0.9)';
+    el.style.transition = 'all 0.2s ease-out';
+    setTimeout(() => el.remove(), 200);
+    updateUploadButton();
+  }
+}
+
+function clearFilePreviews() {
+  state.uploadedFiles = [];
+  document.getElementById('filePreviewArea').innerHTML = '';
+  updateUploadButton();
+}
+
+function updateUploadButton() {
+  const btn = document.getElementById('btnUpload');
+  if (state.uploadedFiles.length > 0) {
+    btn.classList.add('has-files');
+  } else {
+    btn.classList.remove('has-files');
+  }
+}
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + 'B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + 'KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + 'MB';
+}
+
+// ============================================================================
+// IMAGE LIGHTBOX
+// ============================================================================
+function openImageLightbox(src) {
+  const existing = document.querySelector('.image-lightbox');
+  if (existing) existing.remove();
+  const lb = document.createElement('div');
+  lb.className = 'image-lightbox';
+  lb.innerHTML = `<img src="${src}" alt="参考图片">`;
+  lb.addEventListener('click', () => { lb.remove(); document.removeEventListener('keydown', onKey); });
+  const onKey = (e) => { if (e.key === 'Escape') { lb.remove(); document.removeEventListener('keydown', onKey); } };
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(lb);
+}
+
+// ============================================================================
+// INIT & RESTART
+// ============================================================================
+function restartInterview() {
+  if (state.freeformAnswers.length > 0) {
+    saveCurrentConversation();
+  }
+  state.phase = 'welcome'; state.requirementType = null; state.evolutionType = null;
+  state.currentDomain = null; state.domainIndex = 0; state.interviewStep = 0;
+  state.answers = {}; state.freeformAnswers = []; state.conversation = []; state.isProcessing = false;
+  state.conversationId = null; state.uploadedFiles = [];
+  state._pendingAttachments = [];
+  state.aiRequirementMd = ''; state.aiReqdocMd = '';
+  localStorage.setItem('reqstudio_latest_id', '');
+  document.getElementById('chatArea').innerHTML = '';
+  document.getElementById('userInput').value = ''; document.getElementById('userInput').style.height = 'auto';
+  document.getElementById('btnSend').disabled = false; document.getElementById('userInput').disabled = false;
+  document.getElementById('btnExport').disabled = true;
+  clearFilePreviews();
+  renderHistory();
+  document.body.classList.add('homepage');
+  init();
+}
+
+function init() {
+  document.body.classList.add('homepage');
+  loadHistoryFromStorage();  // 从 localStorage 恢复历史对话
+  renderSidebar(); renderHistory();
+  addMessage('assistant', `
+    <p><strong>欢迎！</strong>我会像同事聊天一样，一步步帮你把想法理清楚。</p>
+    <p>我们会聊到这些方面：</p>
+    <ol>
+      <li><strong>为什么要做？</strong> — 解决什么麻烦</li>
+      <li><strong>谁会用到？</strong> — 哪些人、怎么用</li>
+      <li><strong>什么时候用？</strong> — 在什么场景下</li>
+      <li><strong>一步一步怎么做？</strong> — 从头到尾的步骤</li>
+      <li><strong>谁能看？谁能做？</strong> — 不同人的权限</li>
+      <li><strong>要记哪些信息？</strong> — 填什么、存什么</li>
+      <li><strong>长什么样？</strong> — 大概的界面样子</li>
+      <li><strong>怎么算做好了？</strong> — 验收标准</li>
+    </ol>
+    <p>如果功能需要"聪明一点"（自动判断、自动分类），我还会多问几个问题。</p>
+    <p>如果你是在现有基础上改进，我会先问你<strong>现在是怎么做的</strong>。</p>
+    <p>聊完之后，我会帮你整理成一份需求文档。</p>
+    <p>准备好了吗？<strong>用一句话跟我说说你想做什么吧。</strong></p>
+    <p style="font-size:11px;color:var(--text-muted);margin-top:6px">提示：你也可以上传文档、截图等文件来补充想法。</p>
+  `);
+  state.phase = 'welcome';
+}
+
+// ============================================================================
+// BACKEND AI INTEGRATION
+// ============================================================================
+const BACKEND_URL = (() => {
+  try { return window.location.origin.includes('localhost') ? 'http://localhost:3456' : window.location.origin; }
+  catch { return 'http://localhost:3456'; }
+})();
+
+let backendAvailable = false;
+
+function setAIStatus(status, label) {
+  const el = document.getElementById('aiStatus');
+  const txt = document.getElementById('aiStatusText');
+  el.className = 'ai-status ' + status;
+  if (txt) txt.textContent = label;
+}
+
+function setAgentSubtitle(text) {
+  const sub = document.querySelector('.logo-text .sub');
+  if (sub) sub.textContent = text;
+}
+
+async function checkBackendHealth() {
+  setAIStatus('checking', '检测中...');
+  try {
+    const resp = await fetch(BACKEND_URL + '/api/health', { signal: AbortSignal.timeout(3000) });
+    if (resp.ok) {
+      const data = await resp.json();
+      backendAvailable = data.aiEnabled === true;
+      const agentOk = data.agentMode && data.agentPromptLoaded;
+      if (backendAvailable) {
+        setAIStatus('online', `AI 在线 · ${data.model || ''}`);
+        setAgentSubtitle(agentOk ? 'Prompt Agent 驱动' : 'AI 驱动');
+      } else {
+        setAIStatus('offline', 'AI 未配置');
+        setAgentSubtitle(agentOk ? 'Agent 就绪 · 待配置 AI' : '智能访谈引擎');
+      }
+      return;
+    }
+  } catch {}
+  backendAvailable = false;
+  setAIStatus('offline', '离线模式');
+  setAgentSubtitle('智能访谈引擎');
+}
+
+async function callBackendAPI(endpoint, body) {
+  const resp = await fetch(BACKEND_URL + endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(60000),
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.error || `API 错误 (${resp.status})`);
+  }
+  const data = await resp.json();
+  if (!data.success) throw new Error(data.error || '未知错误');
+  return data.content || data;
+}
+
+async function processWithAI(text) {
+  try {
+    const attachments = state._pendingAttachments || [];
+    const hasFiles = attachments.length > 0;
+    const hasImages = attachments.some(a => a.type === 'image');
+    const hasTextFiles = attachments.some(a => a.type === 'text');
+    state._pendingAttachments = [];
+
+    // 显示加载气泡（持久化，API 调用期间持续可见）
+    let loadingText = 'AI 正在思考...';
+    if (hasImages && hasTextFiles) loadingText = '📄🖼️ AI 正在分析文档和图片，请稍候...';
+    else if (hasImages) loadingText = '🖼️ AI 正在分析参考图片，请稍候...';
+    else if (hasTextFiles) loadingText = '📄 AI 正在分析文档内容，请稍候...';
+    showLoadingBubble(loadingText);
+
+    const payload = {
+      phase: state.phase,
+      requirementType: state.requirementType,
+      evolutionType: state.evolutionType,
+      currentDomain: state.currentDomain,
+      interviewStep: state.interviewStep,
+      freeformAnswers: state.freeformAnswers,
+      message: text,
+      attachments,
+    };
+
+    const result = await callBackendAPI('/api/chat', payload);
+
+    // 移除加载气泡
+    removeLoadingBubble();
+
+    // 更新状态
+    if (result.requirementType) state.requirementType = result.requirementType;
+    if (result.evolutionType) state.evolutionType = result.evolutionType;
+    if (result.currentDomain) state.currentDomain = result.currentDomain;
+    state.phase = result.phase || state.phase;
+
+    // 如果 AI 判断进入 interview 阶段，更新 domainIndex
+    if (result.phase === 'interview' && result.currentDomain) {
+      const allDomains = getAllDomains();
+      const idx = allDomains.findIndex(d => d.key === result.currentDomain);
+      if (idx >= 0) {
+        state.domainIndex = idx;
+        state.interviewStep = 0;
+      }
+    }
+
+    // 显示 AI 消息
+    addMessage('assistant', result.message);
+    if (result.hints && result.hints.length > 0) {
+      document.getElementById('inputHint').textContent = result.hints.join('  |  ') + '  |  按 Enter 发送';
+    } else {
+      updateHints();
+    }
+    renderSidebar();
+    saveCurrentConversation();
+    renderHistory();
+    state.isProcessing = false;
+    restoreInputAfterLoading();
+  } catch (err) {
+    removeLoadingBubble();
+    console.error('[AI]', err.message);
+    backendAvailable = false;
+    setAIStatus('offline', '离线模式');
+    restoreInputAfterLoading();
+    fallbackProcessResponse(text);
+  }
+}
+
+function fallbackProcessResponse(text) {
+  // 本地规则引擎（与原来 processResponse 硬编码逻辑相同）
+  if (state.phase === 'complete') {
+    showTyping(() => {
+      addMessage('assistant', '<p>当前访谈已完成。点击 <strong>「重新开始」</strong> 开始新对话，或点击 <strong>「导出需求文档」</strong> 查看结果。</p>');
+      saveCurrentConversation(); renderHistory();
+      state.isProcessing = false;
+    });
+    return;
+  }
+  // ... 复用原有的硬编码 processResponse
+  processResponseLocal(text);
+}
+
+// ============================================================================
+// INIT (updated with backend check)
+// ============================================================================
+init();
+checkBackendHealth();
+</script>
+</body>
+</html>

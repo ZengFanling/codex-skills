@@ -1,0 +1,8 @@
+# 1. 编辑 .env，填入真实 API Key
+vim requirement-studio/server/.env
+
+# 2. 启动后端
+cd requirement-studio/server && node server.js
+
+# 3. 打开前端
+open ../index.html
