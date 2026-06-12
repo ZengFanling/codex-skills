@@ -1702,7 +1702,7 @@ function processResponse(text) {
 function processResponseLocal(text) {
   if (state.phase === 'complete') {
     showTyping(() => {
-      addMessage('assistant', '<p>当前访谈已完成。点击 <strong>「重新开始」</strong> 开始新对话，或点击 <strong>「导出需求文档」</strong> 查看结果。</p>');
+      addMessage('assistant', '<p>当前访谈已完成。点击 <strong>「重新开始」</strong> 开始新对话，或点击 <strong>「需求分析文档」</strong> 查看结果。</p>');
       saveCurrentConversation(); renderHistory();
       state.isProcessing = false;
     });
@@ -1751,7 +1751,7 @@ function processResponseLocal(text) {
       showTyping(() => {
         addMessage('assistant', `<p>太好了，我们聊完了！我已经把关键信息都整理好了。</p>
           <p>你可以：</p>
-          <ul><li>点击左侧底部的 <strong>「导出需求文档」</strong>按钮查看和下载</li>
+          <ul><li>点击左侧底部的 <strong>「需求分析文档」</strong>按钮查看和下载</li>
           <li>如果还有什么想补充的，也可以继续跟我说</li></ul>
           <p>下面是你需求的结构化总结：</p>`);
         setTimeout(() => { showTyping(() => {
@@ -1790,7 +1790,7 @@ function generateSummaryMessage() {
     const first = Object.values(a)[0];
     if (first) html += `<li><strong>${d.label}：</strong>${escapeHtml(first.substring(0,80))}${first.length>80?'...':''}</li>`;
   }
-  html += '</ul><p>完整内容请点击左侧 <strong>「导出需求文档」</strong>查看。</p>';
+  html += '</ul><p>完整内容请点击左侧 <strong>「需求分析文档」</strong>查看。</p>';
   return html;
 }
 
@@ -1813,62 +1813,131 @@ function generateRequirementMd() {
   const dateStr = now.toISOString().split('T')[0];
   const initial = state.freeformAnswers[0];
   const projectName = initial ? initial.answer.replace(/\n/g, ' ').trim().substring(0, 40) : '未命名项目';
-  const typeLabel = state.requirementType === 'ai' ? 'AI需求' : '功能需求';
-  const evolveLabel = state.evolutionType === '0to1' ? '0到1 新建' : '1到N 迭代';
+  const typeLabel = state.requirementType === 'ai' ? 'AI需求' : '传统需求';
+  const evolveLabel = state.evolutionType === '0to1' ? '0→1 新建' : '1→N 迭代';
 
-  let md = `# ${projectName} — 需求分析文档\n\n`;
-  md += `> **需求类型**：${typeLabel}（${evolveLabel}）\n`;
-  md += `> **文档日期**：${dateStr}\n`;
+  const getAns = (key) => {
+    const obj = state.answers[key] || {};
+    return Object.values(obj).filter(v => v && v.trim());
+  };
+  const joinAns = (key, sep = '\n\n') => getAns(key).join(sep);
+
+  let md = `# ${projectName} 需求分析报告\n\n`;
+  md += `> **需求类型**：${typeLabel}  |  **演进方式**：${evolveLabel}  |  **日期**：${dateStr}\n`;
   md += `> **需求来源**：需求工作室 AI 访谈\n\n---\n\n`;
 
+  // ========================
+  // 一、项目背景
+  // ========================
   md += `## 一、项目背景\n\n`;
-  const bgAnswers = state.answers['business-goal'] || {};
-  for (const a of Object.values(bgAnswers)) md += `${a}\n\n`;
 
-  md += `## 二、需求拆解\n\n`;
-  const domains = getAllDomains();
-  let reqIdx = 1;
-  for (const d of domains) {
-    const answers = state.answers[d.key] || {};
-    const values = Object.values(answers).filter(v => v && v.trim());
-    if (values.length === 0) continue;
-    md += `### 需求${reqIdx}：${d.label}\n\n`;
-    for (const a of values) md += `- ${a}\n`;
-    md += '\n';
-    reqIdx++;
-  }
+  md += `### 1.1 业务目标与痛点\n\n`;
+  const bgText = joinAns('business-goal');
+  md += bgText ? `${bgText}\n\n` : `（待补充）\n\n`;
 
-  md += `## 三、工时评估\n\n`;
-  md += `| 阶段 | 工作内容 | 预估工时 | 备注 |\n`;
-  md += `|------|----------|:--------:|------|\n`;
-  md += `| 需求确认与设计 | 需求细节确认、UI/交互设计 | 1-2 周 | 待业务确认 |\n`;
-  md += `| 核心开发 | 主要功能开发与联调 | 2-4 周 | 视复杂度调整 |\n`;
-  if (state.requirementType === 'ai') md += `| AI 能力开发 | 模型对接、知识库搭建、调优 | 2-4 周 | 视AI复杂程度 |\n`;
-  md += `| 测试与修复 | 功能测试、问题修复、UAT | 1-2 周 | |\n`;
-  md += `| 上线与培训 | 部署上线、用户培训 | 1 周 | |\n\n`;
-  md += `> ⚠️ 以上工时为粗略估算，实际需根据具体方案进一步评估。\n\n`;
+  md += `### 1.2 用户与角色\n\n`;
+  const usersText = joinAns('users-roles');
+  md += usersText ? `${usersText}\n\n` : `（待补充）\n\n`;
 
-  md += `## 四、实施建议\n\n`;
-  md += `1. **分阶段推进**：优先交付核心功能，后续迭代增强\n`;
-  md += `2. **角色分工**：业务侧负责需求确认和验收，IT侧负责开发和测试\n`;
+  md += `### 1.3 关键使用场景\n\n`;
+  const sceneText = joinAns('scenario');
+  md += sceneText ? `${sceneText}\n\n` : `（待补充）\n\n`;
+
+  md += `### 1.4 角色权限分析\n\n`;
+  const permText = joinAns('permissions');
+  md += permText ? `${permText}\n\n` : `（待补充）\n\n`;
+
   if (state.evolutionType === '1toN') {
-    md += `3. **兼容现有**：注意与现有流程/系统的衔接，避免影响线上业务\n`;
+    md += `### 1.5 现有流程分析\n\n`;
+    const existText = joinAns('existing-analysis');
+    md += existText ? `${existText}\n\n` : `（待补充）\n\n`;
   }
-  md += '\n';
 
-  md += `## 五、风险与应对\n\n`;
-  md += `| 风险 | 影响 | 应对策略 |\n`;
-  md += `|------|------|----------|\n`;
-  md += `| 需求理解偏差 | 开发方向错误 | 多方确认、原型验证 |\n`;
-  md += `| 资源或排期冲突 | 交付延迟 | 明确优先级、分阶段交付 |\n\n`;
+  // ========================
+  // 二、需求拆解
+  // ========================
+  md += `## 二、需求拆解\n\n`;
 
-  md += `## 六、待确认事项\n\n`;
+  md += `### 2.1 核心流程步骤\n\n`;
+  const procText = joinAns('process-rules');
+  if (procText) {
+    const steps = getAns('process-rules');
+    steps.forEach((s, i) => { md += `**步骤${i + 1}**：${s}\n\n`; });
+  } else {
+    md += `（待补充）\n\n`;
+  }
+
+  md += `> 📐 **流程图建议**：请根据上述步骤绘制泳道图/时序图，标注角色分工与分支条件。\n\n`;
+
+  md += `### 2.2 数据对象与状态\n\n`;
+  const dataText = joinAns('data-objects');
+  if (dataText) {
+    const items = getAns('data-objects');
+    items.forEach((item, i) => {
+      const lines = item.split('\n').filter(l => l.trim());
+      if (lines.length > 0) {
+        md += `**实体${i + 1}**：${lines[0]}\n`;
+        lines.slice(1).forEach(l => { md += `- ${l.trim()}\n`; });
+        md += '\n';
+      }
+    });
+  } else {
+    md += `（待补充）\n\n`;
+  }
+
+  md += `### 2.3 UI / 交互要点\n\n`;
+  const uiText = joinAns('ui-interaction');
+  md += uiText ? `${uiText}\n\n` : `（待补充）\n\n`;
+
+  // ========================
+  // 三、评测集（若为AI需求）
+  // ========================
+  if (state.requirementType === 'ai') {
+    md += `## 三、评测集\n\n`;
+    md += `> 以下为 AI 能力评估维度，评测集请采用以下表格形式组织。\n\n`;
+    md += `| 编号 | 评测场景 | 输入示例 | 期望输出 | 评判标准 | 优先级 |\n`;
+    md += `|:----:|----------|----------|----------|----------|:------:|\n`;
+    const aiAns = getAns('ai-capability');
+    if (aiAns.length > 0) {
+      aiAns.forEach((a, i) => {
+        md += `| EV-${String(i + 1).padStart(3, '0')} | ${a.substring(0, 80)} | （待细化） | （待定义） | （待定义） | P1 |\n`;
+      });
+    } else {
+      md += `| EV-001 | （待根据AI能力需求补充） | — | — | — | P1 |\n`;
+    }
+    md += '\n';
+  }
+
+  // ========================
+  // 附录
+  // ========================
+  md += `## 附录A：非功能要求\n\n`;
+  const accAns = getAns('acceptance');
+  if (accAns.length > 0) {
+    md += `| 要求项 | 说明 |\n`;
+    md += `|--------|------|\n`;
+    accAns.forEach((a, i) => {
+      const short = a.length > 100 ? a.substring(0, 100) + '…' : a;
+      md += `| 验收/约束 ${i + 1} | ${short} |\n`;
+    });
+    md += '\n';
+  } else {
+    md += `（待补充）\n\n`;
+  }
+
+  md += `## 附录B：风险与待确认项\n\n`;
   md += `| 事项 | 影响范围 | 建议由谁确认 | 不确认的风险 |\n`;
   md += `|------|----------|:----------:|------------|\n`;
-  md += `| 需求细节补充确认 | 全局 | 业务方 | 开发受阻 |\n`;
-  if (state.requirementType === 'ai') md += `| AI效果预期对齐 | AI模块 | 业务方+IT | 交付不达预期 |\n`;
+  md += `| 需求细节补充确认 | 全局 | 业务方 | 开发受阻、方向偏差 |\n`;
+  if (state.requirementType === 'ai') {
+    md += `| AI效果预期对齐 | AI模块 | 业务方 + IT | 交付不达预期 |\n`;
+    md += `| 评测集覆盖度确认 | AI模块 | 业务方 + IT | 模型效果无法验证 |\n`;
+  }
+  if (state.evolutionType === '1toN') {
+    md += `| 现有数据迁移方案 | 数据层 | IT + 业务方 | 历史数据丢失或不兼容 |\n`;
+  }
   md += '\n';
-  md += `> 📎 本文档由需求工作室 AI 访谈引擎自动生成。\n`;
+  md += `> 📎 本文档由需求工作室 AI 访谈引擎自动生成，完整内容以服务端 AI 生成版本为准。\n`;
 
   return md;
 }
@@ -1917,7 +1986,7 @@ function copyDocument() {
 function downloadDocument() {
   const content = getDocumentContent();
   // 从文档内容中提取项目名作为文件名前缀
-  const titleMatch = content.match(/^# (.+?) —/);
+  const titleMatch = content.match(/^# (.+?) 需求分析报告/);
   const projectName = titleMatch ? titleMatch[1].replace(/[\/\\:*?"<>|]/g, '-').trim() : '未命名项目';
   const filename = `${projectName}需求方案文档.md`;
   const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
@@ -2404,7 +2473,7 @@ function fallbackProcessResponse(text) {
   // 本地规则引擎（与原来 processResponse 硬编码逻辑相同）
   if (state.phase === 'complete') {
     showTyping(() => {
-      addMessage('assistant', '<p>当前访谈已完成。点击 <strong>「重新开始」</strong> 开始新对话，或点击 <strong>「导出需求文档」</strong> 查看结果。</p>');
+      addMessage('assistant', '<p>当前访谈已完成。点击 <strong>「重新开始」</strong> 开始新对话，或点击 <strong>「需求分析文档」</strong> 查看结果。</p>');
       saveCurrentConversation(); renderHistory();
       state.isProcessing = false;
     });
