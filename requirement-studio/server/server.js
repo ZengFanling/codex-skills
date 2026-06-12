@@ -707,7 +707,7 @@ ${requirementType === 'ai' ? `
       { role: 'system', content: sysPrompt },
       { role: 'user', content: `以下是需求访谈的全部问答记录。请严格按照上述文档结构（一、项目背景 / 二、需求拆解 / 三、评测集）生成需求分析报告：\n\n${answersText}` },
     ];
-    const md = await callAI(messages, 1);
+    const md = await callAI(messages, 1, 8192);
     res.json({ success: true, content: md });
   } catch (err) {
     console.error('[generate-reqdoc]', err.message);

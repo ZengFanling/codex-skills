@@ -2104,7 +2104,8 @@ function loadConversation(id) {
     const avatarHtml = msg.type === 'assistant'
       ? `<div class="msg-avatar assistant-avatar"><svg viewBox="0 0 24 24"><use href="#svg-assistant"/></svg></div>`
       : `<div class="msg-avatar user-avatar"><svg viewBox="0 0 24 24"><use href="#svg-user-avatar"/></svg></div>`;
-    div.innerHTML = `${avatarHtml}<div class="msg-bubble">${msg.content}</div>`;
+    const rendered = msg.type === 'assistant' ? renderMarkdown(msg.content) : msg.content;
+    div.innerHTML = `${avatarHtml}<div class="msg-bubble">${rendered}</div>`;
     document.getElementById('chatArea').appendChild(div);
     state.conversation.push(msg);
   }
