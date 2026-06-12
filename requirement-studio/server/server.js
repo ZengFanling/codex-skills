@@ -8,11 +8,11 @@
 //   文件队列 → Agent 独立处理访谈请求的备用通道
 // =============================================================================
 
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
-const path = require('path');
 const crypto = require('crypto');
 
 const app = express();
