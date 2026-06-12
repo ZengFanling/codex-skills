@@ -2034,7 +2034,7 @@ function downloadDocument() {
   // 从文档内容中提取项目名作为文件名前缀
   const titleMatch = content.match(/^# (.+?) 需求分析报告/);
   const projectName = titleMatch ? titleMatch[1].replace(/[\/\\:*?"<>|]/g, '-').trim() : '未命名项目';
-  const filename = `${projectName}需求方案文档.md`;
+  const filename = `${projectName}需求分析文档.md`;
   const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href = url; a.download = filename;
