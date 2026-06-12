@@ -1953,23 +1953,68 @@ let docsLoading = false;
 
 async function showExportPanel() {
   document.getElementById('exportPanel').style.display = 'flex';
-  document.getElementById('resultContent').innerHTML = '<pre style="color:var(--text-muted);text-align:center;padding:40px">AI 正在生成需求分析文档...</pre>';
+  const resultContent = document.getElementById('resultContent');
+  resultContent.innerHTML = '<pre style="color:var(--text-muted);text-align:center;padding:40px">AI 正在生成需求分析文档...</pre>';
 
   if (backendAvailable && !docsLoading) {
     docsLoading = true;
+    let fullText = '';
     try {
-      const md = await callBackendAPI('/api/generate-reqdoc', {
-        requirementType: state.requirementType,
-        evolutionType: state.evolutionType,
-        freeformAnswers: state.freeformAnswers,
+      resultContent.innerHTML = '<pre id="streamOutput" style="white-space:pre-wrap;line-height:1.7"></pre>';
+      const streamEl = document.getElementById('streamOutput');
+
+      const resp = await fetch(BACKEND_URL + '/api/generate-reqdoc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requirementType: state.requirementType,
+          evolutionType: state.evolutionType,
+          freeformAnswers: state.freeformAnswers,
+        }),
+        signal: AbortSignal.timeout(300000),
       });
-      state.aiReqdocMd = md;
+
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop() || '';
+        for (const line of lines) {
+          const s = line.trim();
+          if (!s.startsWith('data: ')) continue;
+          const json = s.slice(6);
+          if (json === '[DONE]') continue;
+          try {
+            const parsed = JSON.parse(json);
+            if (parsed.delta) {
+              fullText += parsed.delta;
+              streamEl.textContent = fullText;
+              resultContent.scrollTop = resultContent.scrollHeight;
+            }
+            if (parsed.error) {
+              streamEl.textContent = `生成出错：${parsed.error}`;
+            }
+          } catch {}
+        }
+      }
+      state.aiReqdocMd = fullText;
     } catch (e) {
       console.warn('AI 文档生成失败，使用本地模板', e);
     }
     docsLoading = false;
   }
-  document.getElementById('resultContent').innerHTML = `<pre>${escapeHtml(getDocumentContent())}</pre>`;
+
+  // 若流式未产出内容或后端离线，回退本地模板
+  if (!state.aiReqdocMd) {
+    resultContent.innerHTML = `<pre>${escapeHtml(getDocumentContent())}</pre>`;
+  }
 }
 
 function getDocumentContent() {

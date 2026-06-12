@@ -192,6 +192,122 @@ async function callAnthropicAI(messages, temperature) {
   return textParts.join('') || '';
 }
 
+// ---------- 流式 AI 调用（SSE 生成器）----------
+async function* streamAI(messages, temperature = AI_TEMPERATURE, maxTokens = 12000) {
+  if (!AI_ENABLED) throw new Error('AI 未配置');
+  if (AI_API_TYPE === 'anthropic') {
+    yield* streamAnthropicAI(messages, temperature, maxTokens);
+  } else {
+    yield* streamOpenAI(messages, temperature, maxTokens);
+  }
+}
+
+async function* streamOpenAI(messages, temperature, maxTokens) {
+  const resp = await fetch(AI_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${AI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: AI_MODEL,
+      messages,
+      temperature,
+      max_tokens: maxTokens,
+      stream: true,
+      stream_options: { include_usage: true },
+    }),
+    signal: AbortSignal.timeout(300000),
+  });
+  if (!resp.ok) {
+    const err = await resp.text();
+    throw new Error(`AI API 错误 (${resp.status}): ${err.substring(0, 300)}`);
+  }
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    const lines = buf.split('\n');
+    buf = lines.pop() || '';
+    for (const line of lines) {
+      const s = line.trim();
+      if (!s.startsWith('data: ')) continue;
+      const json = s.slice(6);
+      if (json === '[DONE]') return;
+      try {
+        const parsed = JSON.parse(json);
+        const delta = parsed.choices?.[0]?.delta?.content;
+        if (delta) yield delta;
+      } catch {}
+    }
+  }
+}
+
+async function* streamAnthropicAI(messages, temperature, maxTokens) {
+  const systemParts = [];
+  const apiMessages = [];
+  for (const msg of messages) {
+    if (msg.role === 'system') {
+      systemParts.push(msg.content);
+    } else {
+      if (msg.role === 'user' && Array.isArray(msg.content)) {
+        const ac = msg.content.map((p) => {
+          if (p.type === 'text') return { type: 'text', text: p.text };
+          if (p.type === 'image_url') {
+            const m = (p.image_url?.url || '').match(/^data:(image\/\w+);base64,(.+)$/);
+            return { type: 'image', source: { type: 'base64', media_type: m?.[1] || 'image/png', data: m?.[2] || '' } };
+          }
+          return p;
+        });
+        apiMessages.push({ role: 'user', content: ac });
+      } else {
+        apiMessages.push(msg);
+      }
+    }
+  }
+  const systemPrompt = systemParts.join('\n\n');
+  const body = { model: ANTHROPIC_MODEL, max_tokens: maxTokens, temperature, messages: apiMessages, stream: true };
+  if (systemPrompt) body.system = systemPrompt;
+
+  const resp = await fetch(`${ANTHROPIC_BASE_URL}/v1/messages`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': ANTHROPIC_AUTH_TOKEN,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(300000),
+  });
+  if (!resp.ok) {
+    const err = await resp.text();
+    throw new Error(`AI API 错误 (${resp.status}): ${err.substring(0, 300)}`);
+  }
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    const lines = buf.split('\n');
+    buf = lines.pop() || '';
+    for (const line of lines) {
+      const s = line.trim();
+      if (!s.startsWith('data: ')) continue;
+      try {
+        const ev = JSON.parse(s.slice(6));
+        if (ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta') {
+          yield ev.delta.text;
+        }
+      } catch {}
+    }
+  }
+}
+
 function parseAIResponse(text) {
   const cleaned = text.trim();
 
@@ -484,109 +600,7 @@ app.get('/api/agent-mode', (_req, res) => {
   }
 });
 
-// 生成需求分析文档（参考标准结构）
-app.post('/api/generate-requirement', async (req, res) => {
-  if (!AI_ENABLED) {
-    return res.status(503).json({ error: 'AI 服务未配置', hint: '请在 server/.env 中设置 API Key' });
-  }
-
-  const { requirementType, evolutionType, freeformAnswers } = req.body;
-  const answersText = (freeformAnswers || [])
-    .map((a) => `问：${a.question}\n答：${a.answer}`)
-    .join('\n\n');
-
-  const dateStr = new Date().toISOString().split('T')[0];
-  const typeLabel = requirementType === 'ai' ? 'AI需求' : '功能需求';
-  const evolveLabel = evolutionType === '0to1' ? '0→1 新建' : '1→N 迭代';
-
-  const sysPrompt = `你是一个资深需求分析师。根据用户访谈的全部回答，生成一份结构化的需求分析文档。
-
-严格按以下目录结构输出（必须全部用中文，风格参考专业需求分析报告）：
-
-\`\`\`
-# [项目名称] — 需求分析文档
-
-> **需求类型**：${typeLabel}（${evolveLabel}）
-> **文档日期**：${dateStr}
-> **需求来源**：需求访谈
-
----
-
-## 一、项目背景
-
-- 业务背景与动因
-- 目标用户（列出具体角色）
-- 核心痛点（逐条列出，每条一句话）
-
----
-
-## 二、需求拆解
-
-逐条拆分需求项，每条需求包含：
-- 需求名称 + 优先级标记（⭐ 核心 / 🐣 重要 / 🔄 增强）
-- 功能描述（2-4句话说明要做什么）
-- 关键细节（涉及的角色、数据、规则等）
-
----
-
-## 三、工时评估
-
-| 阶段 | 工作内容 | 预估工时 | 备注 |
-|------|----------|:--------:|------|
-| Phase 1 | ... | ... | ... |
-
-给出合理的总工时范围。
-
----
-
-## 四、实施建议
-
-- 分阶段推进路径
-- 每个阶段的关键交付物
-- 角色分工（IT侧 / 业务侧）
-
----
-
-## 五、风险与应对
-
-| 风险 | 影响 | 应对策略 |
-|------|------|----------|
-| ... | ... | ... |
-
----
-
-## 六、待确认事项
-
-| 事项 | 影响范围 | 建议由谁确认 | 不确认的风险 |
-|------|----------|:----------:|------------|
-| ... | ... | ... | ... |
-
----
-
-> 📎 本文档由需求工作室 AI 访谈引擎自动生成。
-\`\`\`
-
-要求：
-- 根据访谈内容自动提取项目名称（从用户的第一条回答中提炼）
-- 如果某些章节信息不足，标注"待补充"并说明需要什么信息
-- 工时评估给出合理范围，不要过于精确
-- 风险分析基于访谈中暴露的不确定项
-- 直接返回 Markdown 文档内容，不要用代码块包裹`;
-
-  try {
-    const messages = [
-      { role: 'system', content: sysPrompt },
-      { role: 'user', content: `以下是需求访谈的全部问答记录。请生成需求分析文档：\n\n${answersText}` },
-    ];
-    const md = await callAI(messages, 0.4);
-    res.json({ success: true, content: md });
-  } catch (err) {
-    console.error('[generate-requirement]', err.message);
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// 生成 reqdoc.md
+// 生成需求分析文档（SSE 流式输出）
 app.post('/api/generate-reqdoc', async (req, res) => {
   if (!AI_ENABLED) {
     return res.status(503).json({ error: 'AI 服务未配置', hint: '请在 server/.env 中设置 API Key' });
@@ -702,16 +716,33 @@ ${requirementType === 'ai' ? `
 - 数据描述务必具体：百分比标注绝对数量、时间标注到年月日、接口超时标注秒数
 - 一级章节名称固定为：一、项目背景 / 二、需求拆解 / 三、评测集`;
 
+  // SSE 流式输出
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream; charset=utf-8',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'X-Accel-Buffering': 'no',
+  });
+
   try {
     const messages = [
       { role: 'system', content: sysPrompt },
       { role: 'user', content: `以下是需求访谈的全部问答记录。请严格按照上述文档结构（一、项目背景 / 二、需求拆解 / 三、评测集）生成需求分析报告：\n\n${answersText}` },
     ];
-    const md = await callAI(messages, 1, 8192);
-    res.json({ success: true, content: md });
+    const stream = streamAI(messages, 0.7, 12000);
+    for await (const chunk of stream) {
+      res.write(`data: ${JSON.stringify({ delta: chunk })}\n\n`);
+    }
+    res.write('data: [DONE]\n\n');
+    res.end();
   } catch (err) {
     console.error('[generate-reqdoc]', err.message);
-    res.status(500).json({ success: false, error: err.message });
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, error: err.message });
+    } else {
+      res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+      res.end();
+    }
   }
 });
 
