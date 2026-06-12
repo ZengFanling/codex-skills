@@ -747,7 +747,7 @@ ${requirementType === 'ai' ? `
       { role: 'system', content: sysPrompt },
       { role: 'user', content: userContext },
     ];
-    const stream = streamAI(messages, 0.7, 12000);
+    const stream = streamAI(messages);
     for await (const chunk of stream) {
       res.write(`data: ${JSON.stringify({ delta: chunk })}\n\n`);
     }
